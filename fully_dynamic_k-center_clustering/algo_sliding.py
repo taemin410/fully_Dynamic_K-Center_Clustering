@@ -123,5 +123,53 @@ class Sliding_level:
 
         index= self.first_attr
         for i in range(0, self.attr_nb):
+        # Oh neul eun yeo gi GGA ji
+            self.centers[self.cluster_nb] = self.attr[index]
+            self.cluster_nb += 1
+            self.sp_points[index] = self.attr[index]
+
             index = (index+1)%(self.k+1)
-        # Oh neul eun yeo gi GGA ji 
+
+        for i in range(0, self.k +2):
+            if -1 != self.orphans[i]:
+                if self.__compute_centers(self.orphans[i], i+ self.k +1):
+                    self.centers[self.cluster_nb] = self.orphans
+                    self.cluster_nb = self.k + 1
+                    return
+
+
+    def sliding_k_center_add(self, element) -> None:
+
+        i_min, index, flag = 0
+        d_min, tmp = double(), double()
+
+        Timestamped_point array = self.array
+        self.last_point = element + 1
+
+        while (self.first_point <= element
+        and array[element].in_date >= array[self.first_point].exp_date):
+
+            self.remove_expired_points(self.first_point)
+
+            index = self.first_attr
+            for i in range(0, self.attr_nb):
+                tmp = self.sliding_distance(array+element, array + self.attr[index])
+                if self.radius >= tmp:
+                    if not flag:
+                        flag = 1
+                        d_min=tmp
+                        i_min=index
+                    elif d_min > tmp :
+                        d_min = tmp
+                        i_min = index
+
+                #update the for loop index
+                index = (index+1)%(self.k+1)
+
+            #update the while loop condition
+            self.first_point +=1
+
+
+
+
+    def
