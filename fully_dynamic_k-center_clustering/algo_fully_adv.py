@@ -6,8 +6,8 @@ class Fully_adv_cluster:
         self.nb = 0 # number of cluster
         self.k = k # maximum number of cluster allowed
         self.radius = radius # maximum cluster radius of current level
-        self.centers = [None] * (k+1)# index of center of each cluster
-        self.true_rad = [None] * k # exact radius of each cluster
+        self.centers = [None] * (k+1) # index of center of each cluster
+        self.true_rad = [None] * k  # exact radius of each cluster
         self.clusters = [None] * (k+1) # content of all clusters (array of sets)
         self.nb_points = nb_points # total number of points in array
         self.array = array # pointer to all points
@@ -34,6 +34,10 @@ class Fully_adv_cluster:
             self.centers[self.nb] = index
             self.true_rad[self.nb] = 0
             self.nb += 1
+
+    # def fully_adv_k_center_delete(self, element_index, helper_array):
+
+
 
 def fully_adv_initialise_level_array(levels, k, eps, d_min, d_max, nb_instances, points, nb_points, cluster_size, helper_array) -> None:
     nb_instances = tmp = (1 + ceil( log(d_max / d_min) / log(1 + eps)))
