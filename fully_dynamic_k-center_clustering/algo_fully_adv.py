@@ -25,18 +25,49 @@ class Fully_adv_cluster:
             tmp = fully_adv_distance(self.array[i], self.array[self.centers[i]])
 
             if self.radius >= tmp:
-                add_element_set_collection(self.clusters, index, i)
+                self.clusters.add_element_set_collection(index, i)
                 self.true_rad[i] = max(tmp, self.true_rad[i])
                 return
         
-        add_element_set_collection(self.clusters, index, self.nb)
+        self.clusters.add_element_set_collection(index, self.nb)
         if self.nb <self.k:
             self.centers[self.nb] = index
             self.true_rad[self.nb] = 0
             self.nb += 1
 
-    # def fully_adv_k_center_delete(self, element_index, helper_array):
+    def fully_adv_k_center_delete(self, element_index, helper_array) -> None:
+        size = None
 
+        cluster_index = self.clusters.get_set_index(element_index)
+        self.clusters.remove_element_set_collection(element_index)
+        if cluster_index < self.k and element_index == self.centers[cluster_index]:
+            self.nb = cluster_index
+            self.clusters.remove_element_set_collection(cluster_index, helper_array, size)
+            shuffle_array(helper_array, size)
+
+            for i in range(size):
+                self.fully_adv_k_center_add(helper_array[i])
+
+    def fully_adv_compute_true_radius(self) -> float:
+        max_rad = 0
+        for i in range(self.nb):
+            max_rad = max(max_rad, self.true_rad[i])
+
+        return max_rad
+
+# @TODO: making log files should be implemented
+# def fully_adv_write_log(levels, nb_instances, nb_points, query):
+#     key = 'a' if query.type == ADD else 'd'
+#     if has_log():
+#         result = levels.fully_adv_get_index_smallest(nb_instances)
+#         if result == nb_instances:
+
+# def fully_adv_apply_one_query(levels, nb_instances, query, helper_array):
+
+def fully_adv_center_run(levels, nb_instances, queries, helper_array) -> None:
+    query = None #query type pointer
+    while get_next_query_set(queries, levels[0].clusters):
+        fully_adv_apply_one_query(levels, nb_instances, query, helper_array)
 
 
 def fully_adv_initialise_level_array(levels, k, eps, d_min, d_max, nb_instances, points, nb_points, cluster_size, helper_array) -> None:
