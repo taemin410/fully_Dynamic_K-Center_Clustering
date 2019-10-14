@@ -171,5 +171,26 @@ class Sliding_level:
 
 
 
+import math
+def sliding_initialise_levels_array(levels, k, eps, d_min, d_max, nb_instances, array, nb_points)-> None:
+    tmp = 1 + math.ceil(log(d_max / d_min) / log(1 + eps))
+    nb_instances= tmp
+    levels = [0] * tmp
+    init=Sliding_level(levels[0], k, 0, array, nb_points)
+    for i in range(0, tmp):
+        #initialize each array
+        level= Sliding_level(levels[i], k, d_min, array, nb_points)
+        d_min = (1+eps) * d_min
 
-    def
+
+    # need to put level objects in the levels array
+
+
+def sliding_delete_levels_array(levels, nb_instances) -> None:
+    for i in range(0, nb_instances):
+        self.sliding_delete_level(levels,i)
+
+    #maybe deletion and freeing of levels array can be simpler
+
+
+# def 
