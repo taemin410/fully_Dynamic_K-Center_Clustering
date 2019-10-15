@@ -193,4 +193,45 @@ def sliding_delete_levels_array(levels, nb_instances) -> None:
     #maybe deletion and freeing of levels array can be simpler
 
 
-# def 
+def sliding_get_index_smallest(levels, nb_instances) -> int:
+    upper_limit = levels.k +1
+    for i in range(0, nb_instances):
+        if (levels[i].attr_nb < upper_limit and
+            levels[i].cluster_nb <upper_limit):
+            return i
+
+    return nb_instances
+
+def sliding_write_log(levels, nb_instances, element) ->int:
+
+    if has_log():
+        result = sliding_get_index_smallest(levels, nb_instances)
+        if result == nb_instances:
+            print("Error no feasible radius possible found after inserting ", element)
+            return 1
+
+    if has_long_log():
+        print(levels[result].last_point - 1, end = ' ')
+        print(levels[result].last_point - levels[result].first_point, end=' ')
+        print(result, end = ' ')
+        print(levels[result].radius, end = ' ')
+        print(sliding_compute_true_radius(levels+result), end = ' ')
+        print(levels[result].cluster_nb)
+
+    else:
+        print(levels[result].last_point - 1, end = ' ')
+        print(levels[result].last_point - levels[result].first_point, end=' ')
+        print(result, end = ' ')
+        print(levels[result].radius, end = ' ')
+        print(levels[result].cluster_nb)
+
+    return 0
+
+#Have not checked running
+def sliding_k_center_run(levels, nb_instances) -> None:
+    for i in range(0, levels[0].nb_points):
+        for j in range(0, nb_instances):
+            sliding_k_center_add(levels+j , i )
+        for j in range(0, nb_instances):
+            sliding_compute_centers(levels+j)
+        sliding_write_log(levels, nb_instances, i)
