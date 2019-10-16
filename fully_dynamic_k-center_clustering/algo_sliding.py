@@ -1,4 +1,5 @@
 # import point
+import math
 
 class Sliding_level:
 
@@ -171,7 +172,6 @@ class Sliding_level:
 
 
 
-import math
 def sliding_initialise_levels_array(levels, k, eps, d_min, d_max, nb_instances, array, nb_points)-> None:
     tmp = 1 + math.ceil(log(d_max / d_min) / log(1 + eps))
     nb_instances= tmp
