@@ -24,16 +24,27 @@ def sliding_k_center(prog_args):
 def fully_adv_k_center(prog_args):
     array = fully_adv_import_points(prog_args["points_path"])
 
-    queries = query_provider()
+    queries = query_provider("path", "fd", 100, 0, 0)
+
+    nb_instances=int()
+    size = int()
+    array=None
+    helper_array = None
+    clusters_array=[]
 
     queries.initialise_query_provider(prog_args["queries_path"])
-
     if prog_args["cluster_size"] == 0:
         prog_args["cluster_size"] = size
 
-    fully_adv_initialise_level_array()
-    #
-	# fully_adv_initialise_level_array(&clusters_array, prog_args->k,
+    fully_adv_initialise_level_array(clusters_array, prog_args["k"],
+                                    prog_args["epsilon"], prog_args["d_min"],
+                                	prog_args["d_max"],nb_instances, array,
+                                    size, prog_args["cluster_size"], helper_array)
+
+    fully_adv_k_center_run(clusters_array, nb_instances, queries, helper_array)
+
+
+    # fully_adv_initialise_level_array(&clusters_array, prog_args->k,
 	# 				 prog_args->epsilon, prog_args->d_min,
 	# 				 prog_args->d_max, &nb_instances, array,
 	# 				 size, prog_args->cluster_size,
@@ -57,12 +68,13 @@ prog_args={
     "d_min" : 3,
     "d_max" : 10,
     "points_path" : "1.log",
-    "queries_path" : "queries.dat"
+    "queries_path" : "queries.dat",
+    "cluster_size" : 2
 }
 
-# sliding_k_center(prog_args)
+sliding_k_center(prog_args)
 
-fully_adv_k_center(prog_args)
+# fully_adv_k_center(prog_args)
 
 
 

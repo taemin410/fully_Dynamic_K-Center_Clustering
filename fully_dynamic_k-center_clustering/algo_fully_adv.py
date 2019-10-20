@@ -31,7 +31,7 @@ class Fully_adv_cluster:
                 self.clusters.add_element_set_collection(index, i)
                 self.true_rad[i] = max(tmp, self.true_rad[i])
                 return
-        
+
         self.clusters.add_element_set_collection(index, self.nb)
         if self.nb <self.k:
             self.centers[self.nb] = index
@@ -91,7 +91,7 @@ def fully_adv_apply_one_query(levels, nb_instances, q, helper_array) -> None:
         nb_points -= 1
         for i in range(nb_instances):
             levels[i].fully_adv_k_center_delete(q.data_index, helper_array)
-    
+
     return fully_adv_write_log(levels, nb_instances, nb_points, q)
 
 def fully_adv_center_run(levels, nb_instances, queries, helper_array) -> None:
@@ -117,13 +117,12 @@ def fully_adv_delete_level_array(levels, helper_array):
 
 def fully_adv_get_index_smallest(levels, nb_instances):
     for i in range(nb_instances):
-        if (0 == levels[i].clusters.sets[levels[i].k].card): 
+        if (0 == levels[i].clusters.sets[levels[i].k].card):
             return i
 
         return nb_instances
 
 def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
     q = None
-    while queries.get_next_query_set(q, levels[0].clusters):
+    while queries.get_next_query_set(q, levels.clusters):
         fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
-    
