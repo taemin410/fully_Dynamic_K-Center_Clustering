@@ -1,6 +1,16 @@
 import math
 import random
 
+
+def log_ceil(self, n, base) -> float:
+    return float(math.ceil(math.log(n) / math.log(base)))
+
+def shuffle_array(self, array, size) -> None:
+    if size:
+        for i in range(0, size-1):
+            pick = i + random.randint(0,2147483647) % (size - i)
+            array[i],array[pick] = array[pick], array[i]
+
 class Log:
 
     def __init__(self, path, long_log=0):
