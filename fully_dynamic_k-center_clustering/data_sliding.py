@@ -11,8 +11,8 @@ def sliding_import_points(path, window_length):
             timestamp = int(splitted_array[0])
 
             lati_loni_array = splitted_array[1].split(' ') 
-            latitude = int(lati_loni_array[0])
-            longitude = int(lati_loni_array[1])
+            latitude = float(lati_loni_array[0])
+            longitude = float(lati_loni_array[1])
 
             geo_point = Geo_point(latitude, longitude)
             timestamped_point = Timestamped_point(timestamp, timestamp+window_length, geo_point)
