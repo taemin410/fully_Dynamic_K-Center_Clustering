@@ -52,7 +52,7 @@ def packed_import_points(point_array, nb_element, path)-> bool:
 
 def packed_print_points(parray, nb_element) -> None:
 
-    Geo_point array = parray
+    array = parray
     for i in range(0, nb_element):
         print(i, array[i].longitude, array[i].latitude)
         #should check for printing message format

@@ -3,14 +3,15 @@ from math import acos, sin, cos, sqrt
 M_PI = 3.14159265358979323846
 
 class Geo_point:
-    def __init__(self):
-        self.latitude = 0.0
-        self.longitude = 0.0
+    def __init__(self, latitude, longitude):
+        self.latitude = latitude
+        self.longitude = longitude
 
 class Timestamped_point:
-    def __init__(self):
+    def __init__(self, in_date, exp_date, geo_point):
         self.in_date = 0.0
         self.exp_date = 0.0
+        self.geo_point = geo_point
 
 
 def euclidean_distance(a, b) -> float:
