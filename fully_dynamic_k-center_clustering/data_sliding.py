@@ -8,11 +8,11 @@ def sliding_import_points(path, window_length):
         line = fp.readline()
         while line:
             splitted_array = line.split('\t')
-            timestamp = splitted_array[0]
+            timestamp = int(splitted_array[0])
 
             lati_loni_array = splitted_array[1].split(' ') 
-            latitude = lati_loni_array[0]
-            longitude = lati_loni_array[1]
+            latitude = int(lati_loni_array[0])
+            longitude = int(lati_loni_array[1])
 
             geo_point = Geo_point(latitude, longitude)
             timestamped_point = Timestamped_point(timestamp, timestamp+window_length, geo_point)
