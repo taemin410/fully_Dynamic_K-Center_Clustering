@@ -8,10 +8,11 @@ class Geo_point:
         self.longitude = longitude
 
 class Timestamped_point:
-    def __init__(self, geo_point):
-        self.in_date = 0.0
-        self.exp_date = 0.0
+    def __init__(self, in_date=0.0, exp_date=0.0, geo_point):
+        self.in_date = in_date
+        self.exp_date = exp_date
         self.geo_point = geo_point
+
 
 def euclidean_distance(a, b) -> float:
     return sqrt((a.latitude - b.latitude) ** 2 + ( min( abs(a.latitude - b.latitude), 360 - abs(a.longitude - b.longitude)) ) ** 2)
