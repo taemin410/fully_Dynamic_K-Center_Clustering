@@ -1,4 +1,5 @@
 
+BUFSIZ = 100
 
 Query_type = ["ADD", "REMOVE", "UPDATE", "LAST_QUERY_TYPE"]
 
@@ -8,12 +9,11 @@ class query:
         self.data_index = data_index
 
 class query_provider:
-    def __init(self, path, fd, buffer, current, nb_query):
-        self.path = path
-        self.fd = fd
-        self.buffer = [0]*BUFSIZ
-        self.current = current
-        self.nb_query = nb_query
+    def __init__(self):
+        self.fd = None
+        self.buffer = [0]*100
+        self.current = 0
+        self.nb_query = 0
 
 
     def initialise_query_provider(self, path) -> None:

@@ -9,8 +9,8 @@ class Geo_point:
 
 class Timestamped_point:
     def __init__(self, in_date, exp_date, geo_point):
-        self.in_date = 0.0
-        self.exp_date = 0.0
+        self.in_date = in_date
+        self.exp_date = exp_date
         self.geo_point = geo_point
 
 
