@@ -1,5 +1,6 @@
 from set_ import Set_collection
 from math import ceil, log
+from utils import log_
 
 class Trajectory_level:
     def __init__(self, k, radius, array, nb_points):
@@ -142,19 +143,49 @@ class Trajectory_level:
         else:
             self.__trajectories_update_non_center(index, cluster_index)
 
+
 # @TODO: specify the return type after enum util py is written
 #        import the library to use the unimplemented function
-# def trajectories_write_log(levels, nb_instances, nb_points, query):
-#     if has_log():
-#         key = 'a' if query.type == ADD else 'u'
-#         result = trajectories_get_index_smallest(levels, nb_instances)
-#         if result == nb_instances:
+def trajectories_write_log(levels, nb_instances, nb_points, q):
+    if log_.has_log():
+        key = 'a' if query.type == "ADD" else 'u'
+        result = trajectories_get_index_smallest(levels, nb_instances)
+        if result == nb_instances:
+            print("Error, no valid level found with bound given\n")
+            return 4 #ONLY_BAD_LEVELS_ERROR
+        
+        if not log_.has_long_log():
+            f = open(log_.get_log_file(), "w+")
+            f.write("%c %u %u c%u %lf %d\n",
+            q.data_index, nb_points, result, levels[result].radius, levels[result].nb)
+            f.close()   
+        else:
+            f = open(log_.get_log_file(), "w+")
+            f.write("%c %u %u c%u %lf %d\n",
+            key, q.data_index, nb_points, result, levels[result].trajectories_compute_true_radius(), levels[result].nb)
+            f.close()
 
-def trajectories_apply_one_query(levels, nb_instances, query, helper_array):
+    return 0 #NO_ERROR
+
+def trajectories_apply_one_query(levels, nb_instances, q, helper_array):
     nb_points = 0
+    if add_point_trajectories(levels[0].trajectories[q.data_index]):
+        q.type = "UPDATE"
+        for i in range(nb_instances):
+            levels[i].trajectories_k_center_update(q.data_index, helper_array)
+    else:
+        nb_points += 1
+        for i in range(nb_instances):
+            levels[i].trajectories_k_center_add(q.data_index)
 
+    trajectories_write_log(levels, nb_instances, nb_points, q)
 
-def trajectories_initialize_level_array(k, eps, d_min, d_max, nb_instances, array, nb_points, helper_array) -> list:
+def trajectories_k_center_run(levels, nb_instances, queries, helper_array):
+    q = None
+    while get_next_query_trajectories(queries, q):
+        trajectories_apply_one_query(levels, nb_instances, q, helper_array)
+
+def trajectories_initialise_level_array(k, eps, d_min, d_max, nb_instances, array, nb_points, helper_array) -> list:
     nb_instances = tmp = (1 + ceil(log(d_max / d_min) / log(1 + eps)))
     levels = [None] * tmp
     helper_array = [None] *nb_points
