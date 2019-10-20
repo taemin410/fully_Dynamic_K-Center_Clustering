@@ -2,3 +2,4 @@
 timestamped_gps_coordinate.txt
 *.log
 *.dat
+*.pyc
