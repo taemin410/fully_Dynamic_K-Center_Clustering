@@ -2,16 +2,12 @@ import math
 import random
 
 class Log:
-
-    log_file = None
-    long_log = 0
-
     def __init__(self, path, long_log=0):
-        log_file=path
-        long_log=long_log
+        self.log_file=path
+        self.long_log=long_log
 
     def log_ceil(self, n, base) -> float:
-        return double(math.ceil(log(n) / log(base)))
+        return float(math.ceil(math.log(n) / math.log(base)))
 
     def shuffle_array(self, array, size) -> None:
         if size:

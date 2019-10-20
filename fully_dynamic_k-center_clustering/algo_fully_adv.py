@@ -1,4 +1,5 @@
 import point
+import query
 from math import ceil, log
 
 class Fully_adv_cluster:
@@ -56,16 +57,41 @@ class Fully_adv_cluster:
         return max_rad
 
 # @TODO: making log files should be implemented
-# def fully_adv_write_log(levels, nb_instances, nb_points, query):
-#     key = 'a' if query.type == ADD else 'd'
-#     if has_log():
-#         result = levels.fully_adv_get_index_smallest(nb_instances)
-#         if result == nb_instances:
+def fully_adv_write_log(levels, nb_instances, nb_points, q) -> int:
+    key = 'a' if query.type == ADD else 'd'
+    if has_log():
+        result = levels.fully_adv_get_index_smallest(nb_instances)
+        if result == nb_instances:
+            print('Error, no feasible radius possible found after intersing', q.data_index)
+            return 4 #only_bad_levels_error
+    
+    if has_long_log():
+        f = open(get_log_file(), "w+")
+        f.write(key, q.data_index, nb_points, result, levels[result].radius, fully_adv_compute_true_radius(levels[result], levels[result].nb))
+        f.close()
+    else:
+        f = open(get_log_file(), "w+")
+        f.write(q.data_index, nb_points, result, levels[result].radius, levels[result].nb)
+        f.close()
 
-# def fully_adv_apply_one_query(levels, nb_instances, query, helper_array):
+    return 0
+
+def fully_adv_apply_one_query(levels, nb_instances, q, helper_array) -> None:
+    nb_points = 0
+    if q.type == ADD:
+        print(q.data_index)
+        nb_points += 1
+        for i in range(nb_instances):
+            levels[i].fully_adv_k_center_add(q.data_index)
+    else:
+        nb_points -= 1
+        for i in range(nb_instances):
+            levels[i].fully_adv_k_center_delete(q.data_index, helper_array)
+    
+    return fully_adv_write_log(levels, nb_instances, nb_points, q)
 
 def fully_adv_center_run(levels, nb_instances, queries, helper_array) -> None:
-    query = None #query type pointer
+    q = None #query type pointer
     while get_next_query_set(queries, levels[0].clusters):
         fully_adv_apply_one_query(levels, nb_instances, query, helper_array)
 
@@ -92,4 +118,8 @@ def fully_adv_get_index_smallest(levels, nb_instances):
 
         return nb_instances
 
-# def fully_adv_k_center_add(l)
+def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
+    q = None
+    while(get_next_query_set(queries, q, levels[0].clusters)):
+        fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
+    
