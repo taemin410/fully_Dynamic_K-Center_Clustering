@@ -1,6 +1,16 @@
 import math
 import random
 
+
+def log_ceil(self, n, base) -> float:
+    return float(math.ceil(math.log(n) / math.log(base)))
+
+def shuffle_array(self, array, size) -> None:
+    if size:
+        for i in range(0, size-1):
+            pick = i + random.randint(0,2147483647) % (size - i)
+            array[i],array[pick] = array[pick], array[i]
+
 class Log:
 
     def __init__(self, path, long_log=0):
@@ -8,14 +18,6 @@ class Log:
         self.long_log=long_log
         self.enable_log(path)
 
-    def log_ceil(self, n, base) -> float:
-        return float(math.ceil(math.log(n) / log(math.base)))
-
-    def shuffle_array(self, array, size) -> None:
-        if size:
-            for i in range(0, size-1):
-                pick = i + random.randint(0,2147483647) % (size - i)
-                array[i],array[pick] = array[pick], array[i]
 
     def enable_log(self, path) -> None:
         if path:
@@ -39,5 +41,5 @@ class Log:
     def has_long_log(self):
         return 0 != self.long_log
 
-log = Log("test.log", 0)
+log_ = Log("test.log", 0)
 #from utils import log
