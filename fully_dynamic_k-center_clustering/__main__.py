@@ -8,7 +8,7 @@ from query import *
 
 def sliding_k_center(prog_args):
 
-    array = sliding_import_points("1.log")
+    array = sliding_import_points("../dataset/timestamped_gps_coordinate.txt" , 10)
 
     print("Import ended! ")
     nb_instances=int()
@@ -20,6 +20,8 @@ def sliding_k_center(prog_args):
 					prog_args["d_max"], nb_instances, array, size)
 
     sliding_k_center_run(levels, nb_instances)
+
+    
 
 def fully_adv_k_center(prog_args):
     array = fully_adv_import_points(prog_args["points_path"])
@@ -42,24 +44,6 @@ def fully_adv_k_center(prog_args):
                                     size, prog_args["cluster_size"], helper_array)
 
     fully_adv_k_center_run(clusters_array, nb_instances, queries, helper_array)
-
-
-    # fully_adv_initialise_level_array(&clusters_array, prog_args->k,
-	# 				 prog_args->epsilon, prog_args->d_min,
-	# 				 prog_args->d_max, &nb_instances, array,
-	# 				 size, prog_args->cluster_size,
-	# 				 &helper_array);
-	# fully_adv_k_center_run(clusters_array, nb_instances, &queries,
-	# 		       helper_array);
-	# free(array);
-	# fully_adv_delete_level_array(clusters_array, nb_instances,
-	# 			     helper_array);
-	# free_query_provider(&queries);
-
-
-
-
-
 
 
 prog_args={
