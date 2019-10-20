@@ -5,7 +5,7 @@ INIT_ARRAY_SIZE = 100000
 
 BUFSIZ= 100
 
-def packed_distance(a, b) -> double:
+def packed_distance(a, b) -> float:
 
     return point.euclidean_distance(a,b)
 

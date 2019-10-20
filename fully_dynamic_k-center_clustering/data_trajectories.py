@@ -12,7 +12,7 @@ class Trajectory:
 
 
 
-def hausdorff_distance(a, b) -> double :
+def hausdorff_distance(a, b) -> float :
     cmax= 0
     for i in range(0, a.current):
         cmin = euclidean_distance(a.points[i], b.points[0])
@@ -28,7 +28,7 @@ def hausdorff_distance(a, b) -> double :
 
     return cmax
 
-def trajectories_distance(a,b) -> double:
+def trajectories_distance(a,b) -> float:
     return max(hausdorff_distance(a, b), hausdorff_distance(b, a))
 
 

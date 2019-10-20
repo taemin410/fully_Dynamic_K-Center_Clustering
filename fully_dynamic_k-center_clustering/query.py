@@ -34,7 +34,10 @@ class query_provider:
                 return 0
 
         next_query.data_index = self.buffer[self.current]
-        next_query.type = sets.has_element_set_collection(next_query.data_index) ? "REMOVE" : "ADD"
+        if sets.has_element_set_collection(next_query.data_index):
+            next_query.type = "REMOVE"
+        else:
+            next_query.type = "ADD"
         self.current += 1
         return 1
 
@@ -46,7 +49,10 @@ class query_provider:
                 return 0
 
         next_query.data_index = self.buffer[self.current]
-        next_query.type = lookup.has_element_lookup(next_query.data_index) ? "REMOVE" : "ADD"
+        if lookup.has_element_lookup(next_query.data_index):
+            next_query.type = "REMOVE"
+        else:
+            next_query.type = "ADD"
         self.current +=1
         return 1
 

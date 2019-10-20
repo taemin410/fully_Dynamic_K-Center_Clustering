@@ -1,5 +1,7 @@
 # import point
 import math
+import utils
+from utils import log
 
 class Sliding_level:
 
@@ -144,7 +146,8 @@ class Sliding_level:
         i_min, index, flag = 0
         d_min, tmp = double(), double()
 
-        Timestamped_point array = self.array
+        # array = Timestamped_point()
+        array = self.array
         self.last_point = element + 1
 
         while (self.first_point <= element
@@ -207,23 +210,23 @@ def sliding_write_log(levels, nb_instances, element) ->int:
     if has_log():
         result = sliding_get_index_smallest(levels, nb_instances)
         if result == nb_instances:
-            print("Error no feasible radius possible found after inserting ", element)
+            log.write("Error no feasible radius possible found after inserting ", element)
             return 1
 
     if has_long_log():
-        print(levels[result].last_point - 1, end = ' ')
-        print(levels[result].last_point - levels[result].first_point, end=' ')
-        print(result, end = ' ')
-        print(levels[result].radius, end = ' ')
-        print(sliding_compute_true_radius(levels+result), end = ' ')
-        print(levels[result].cluster_nb)
+        log.write(levels[result].last_point - 1, end = ' ')
+        log.write(levels[result].last_point - levels[result].first_point, end=' ')
+        log.write(result, end = ' ')
+        log.write(levels[result].radius, end = ' ')
+        log.write(sliding_compute_true_radius(levels+result), end = ' ')
+        log.write(levels[result].cluster_nb)
 
     else:
-        print(levels[result].last_point - 1, end = ' ')
-        print(levels[result].last_point - levels[result].first_point, end=' ')
-        print(result, end = ' ')
-        print(levels[result].radius, end = ' ')
-        print(levels[result].cluster_nb)
+        log.write(levels[result].last_point - 1, end = ' ')
+        log.write(levels[result].last_point - levels[result].first_point, end=' ')
+        log.write(result, end = ' ')
+        log.write(levels[result].radius, end = ' ')
+        log.write(levels[result].cluster_nb)
 
     return 0
 
