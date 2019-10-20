@@ -1,11 +1,11 @@
 # import point
 import math
 import utils
-from utils import log
+from utils import log_
 
 class Sliding_level:
 
-    def __init__(self,level,k,radius,array,nb_points):
+    def __init__(self,level=None,k=0,radius=0,array=None,nb_points=0):
         self.k=k #Maximum number of clusters allowed
         self.radius=radius #Cluster radius
         self.elements=[0]*nb_points #the ancestor of each element
@@ -15,8 +15,8 @@ class Sliding_level:
         self.orphans=[None]*(k+2) #index of all orphans
         self.parents=[None]*(k+2) #index of the dead parent of each orphan
         for i in range(0,k+2):
-            level.orphans[i]= -1
-            level.parents[i]= -1
+            self.orphans[i]= -1
+            self.parents[i]= -1
 
         self.first_attr=0 #index of oldest attractor in attr
         self.centers= [None]*(k+1) #index of all clusters
@@ -176,7 +176,7 @@ class Sliding_level:
 
 
 def sliding_initialise_levels_array(levels, k, eps, d_min, d_max, nb_instances, array, nb_points)-> None:
-    tmp = 1 + math.ceil(log(d_max / d_min) / log(1 + eps))
+    tmp = 1 + math.ceil(math.log(d_max / d_min) / math.log(1 + eps))
     nb_instances= tmp
     levels = [0] * tmp
     init=Sliding_level(levels[0], k, 0, array, nb_points)
@@ -232,7 +232,7 @@ def sliding_write_log(levels, nb_instances, element) ->int:
 
 #Have not checked running
 def sliding_k_center_run(levels, nb_instances) -> None:
-    for i in range(0, levels[0].nb_points):
+    for i in range(0, levels.nb_points):
         for j in range(0, nb_instances):
             sliding_k_center_add(levels+j , i )
         for j in range(0, nb_instances):
