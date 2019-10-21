@@ -21,7 +21,7 @@ def sliding_k_center(prog_args):
 
     sliding_k_center_run(levels, nb_instances)
 
-    
+
 
 def fully_adv_k_center(prog_args):
     array = fully_adv_import_points(prog_args["points_path"])
@@ -44,6 +44,12 @@ def fully_adv_k_center(prog_args):
                                     size, prog_args["cluster_size"], helper_array)
 
     fully_adv_k_center_run(clusters_array, nb_instances, queries, helper_array)
+
+
+
+# def packed_k_center(prog_args):
+
+
 
 
 prog_args={
