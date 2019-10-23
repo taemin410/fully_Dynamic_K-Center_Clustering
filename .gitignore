@@ -3,3 +3,5 @@ timestamped_gps_coordinate.txt
 *.log
 *.dat
 *.pyc
+/dataset
+fully_dynamic_k-center_clustering/__pycache__
