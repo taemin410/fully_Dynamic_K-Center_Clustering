@@ -42,5 +42,4 @@ def fully_adv_import_points(path, window_length):
 
 
     fp.close()
-
-    return point_array
+    return counter, point_array

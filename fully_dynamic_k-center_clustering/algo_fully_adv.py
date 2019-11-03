@@ -59,25 +59,28 @@ class Fully_adv_cluster:
 
         return max_rad
 
-# @TODO: making log files should be implemented
 def fully_adv_write_log(levels, nb_instances, nb_points, q) -> int:
     key = 'a' if q.type == "ADD" else 'd'
+    print("writing log")
     if log_.has_log():
-        result = levels.fully_adv_get_index_smallest(nb_instances)
+        result = fully_adv_get_index_smallest(levels, nb_instances)
+        print("test")
         if result == nb_instances:
             print('Error, no feasible radius possible found after intersing', q.data_index)
             return 4 #only_bad_levels_error
 
-    if log_.has_long_log():
-        f = open(log_.get_log_file(), "w+")
-        f.write("%c %u %u c%u %lf %lf %u\n",
-            key, q.data_index, nb_points, result, levels[result].radius, levels[result].fully_adv_compute_true_radius(levels[result].nb))
-        f.close()
-    else:
-        f = open(log_.get_log_file(), "w+")
-        f.write("%c %u %u c%u %lf %lf %u\n",
-            key, q.data_index, nb_points, result, levels[result].radius, levels[result].nb)
-        f.close()
+        if log_.has_long_log():
+            print("tesst2")
+            f = log_.get_log_file()
+            f.write("%c %u %u c%u %lf %lf %u\n",
+                key, q.data_index, nb_points, result, levels[result].radius, levels[result].fully_adv_compute_true_radius(levels[result].nb))
+            f.close()
+        else:
+            print("test3")
+            f = log_.get_log_file()
+            f.write("%c %u %u c%u %lf %lf %u\n",
+                key, q.data_index, nb_points, result, levels[result].radius, levels[result].nb)
+            f.close()
 
     return 0
 
@@ -124,6 +127,6 @@ def fully_adv_get_index_smallest(levels, nb_instances):
 
 def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
     q = query()
-    print("@@@@Testing levels[0].clusters@@@@@", levels[0].clusters)
+    # print("@@@@Testing levels[0].clusters@@@@@", levels[0].clusters)
     while queries.get_next_query_set(q, levels[0].clusters):
         fully_adv_apply_one_query(levels, nb_instances, q, helper_array)

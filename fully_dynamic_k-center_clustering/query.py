@@ -9,11 +9,12 @@ class query:
         self.data_index = 0
 
 class query_provider:
-    def __init__(self):
-        self.fd = None
-        self.buffer = [0]*100
-        self.current = 0
-        self.nb_query = 0
+    def __init__(self, path=None, fd=None, buffer=100, current=0, nb_query=0):
+        self.path= path
+        self.fd = fd
+        self.buffer = [None]*buffer
+        self.current = current
+        self.nb_query = nb_query
 
     def initialise_query_provider(self, path) -> None:
         self.fd = open(path, "r")
@@ -26,15 +27,18 @@ class query_provider:
     def get_next_query_set(self, next_query, sets) -> int:
         if self.current >= self.nb_query:
             self.current = 0
+            print("@@@@@@@@@@@@@query", self.nb_query)
             self.nb_query = self.fd.readline()
 
             if not self.nb_query:
+                print("not")
                 return 0
 
-        next_query.data_index = self.buffer[self.current]
+        next_query.data_index = int(self.nb_query)
         next_query.type = "REMOVE" if sets.has_element_set_collection(next_query.data_index) else "ADD"
-        
+
         self.current += 1
+        print("yes")
         return 1
 
     def get_next_query_lookup(self, next_query, lookup) -> int:
