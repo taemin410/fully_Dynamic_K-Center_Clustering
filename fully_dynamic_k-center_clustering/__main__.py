@@ -88,13 +88,13 @@ def main():
     #   INITIALIZE PROG_ARGS
     #
     prog_args={
-        "k": 5,
+        "k": 10,
         "epsilon": 0.01,
-        "d_min" : 3,
-        "d_max" : 10,
+        "d_min" : 1,
+        "d_max" : 1000,
         "points_path" : "dataset/timestamped_gps_coordinate.txt",
         "queries_path" : "queries.dat",
-        "cluster_size" : 2,
+        "cluster_size" : 10,
         "window_length" : 10
     }
 

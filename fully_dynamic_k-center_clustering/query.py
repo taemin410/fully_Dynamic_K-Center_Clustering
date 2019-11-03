@@ -9,12 +9,12 @@ class query:
         self.data_index = 0
 
 class query_provider:
-    def __init__(self, path, fd, buffer, current, nb_query):
-        self.path= path
-        self.fd = fd
-        self.buffer = [0]*buffer
-        self.current = current
-        self.nb_query = nb_query
+    def __init__(self):
+        self.path= None
+        self.fd = None
+        self.buffer = [None]*100
+        self.current = 0
+        self.nb_query = None
 
     def initialise_query_provider(self, path) -> None:
         self.fd = open(path, "r")
