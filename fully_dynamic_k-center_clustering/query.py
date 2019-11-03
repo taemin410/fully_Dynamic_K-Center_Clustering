@@ -15,12 +15,10 @@ class query_provider:
         self.current = 0
         self.nb_query = 0
 
-
     def initialise_query_provider(self, path) -> None:
         self.fd = open(path, "r")
         self.current = 0
         self.nb_query = 0
-
 
     def free_query_provider(self) -> None:
         self.fd.close()
