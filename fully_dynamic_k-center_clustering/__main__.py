@@ -1,7 +1,7 @@
 from algo_sliding import *
 from algo_fully_adv import *
 from algo_trajectories import *
-from data_sliding import *
+from data_sliding import sliding_import_points
 from data_fully_adv import *
 from query import *
 
@@ -35,11 +35,10 @@ def sliding_k_center(prog_args):
     sliding_k_center_run(levels, nb_instances)
 
 
-
 def fully_adv_k_center(prog_args):
-    array = fully_adv_import_points(prog_args["points_path"])
+    array = fully_adv_import_points(prog_args["points_path"], prog_args['window_length'])
 
-    queries = query_provider("path", "fd", 100, 0, 0)
+    queries = query_provider()
 
     nb_instances=int()
     size = int()
@@ -107,9 +106,6 @@ def arg_parse(prog_args):
     if args.trajectories:
         print()
 
-
-
-
 def main():
 
     #
@@ -149,9 +145,6 @@ def main():
 
 #run main()
 main()
-
-
-
 
 #
 # void packed_k_center(struct program_args *prog_args)

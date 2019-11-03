@@ -8,9 +8,7 @@ def sliding_import_points(path, window_length):
     with open(path) as fp:
         line = fp.readline()
         while line:
-
             try:
-
                 splitted_array = line.split('\t')
                 timestamp = int(splitted_array[0])
 
@@ -34,8 +32,6 @@ def sliding_import_points(path, window_length):
 
             #Finally
             line = fp.readline()
-
-
     fp.close()
 
     return point_array
