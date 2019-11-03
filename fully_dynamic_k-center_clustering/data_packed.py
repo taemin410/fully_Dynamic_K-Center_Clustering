@@ -10,45 +10,64 @@ def packed_distance(a, b) -> float:
     return point.euclidean_distance(a,b)
 
 
-def packed_read_point(string, p) -> bool:
+# def packed_read_point(string, p) -> bool:
+#
+#     tmp = string.split("\t")
+#
+#     if not tmp:
+#         return False
+#
+#     #tokenize and check for format of Geo_point p
+#     p = tmp
+#
+#     if not p.longitude:
+#         return False
+#
+#     if not p.latitude:
+#         return False
+#
+#     return True
+#
 
-    tmp = string.split("\t")
+def packed_import_points(path):
 
-    if not tmp:
-        return False
+    point_array=[]
+    counter = 0
 
-    #tokenize and check for format of Geo_point p
-    p = tmp
+    with open(path) as fp:
+        line = fp.readline()
+        while line:
 
-    if not p.longitude:
-        return False
+            try:
+                splitted_array = line.split('\t')
+                timestamp = int(splitted_array[0])
 
-    if not p.latitude:
-        return False
+                lati_loni_array = splitted_array[1].split(' ')
+                latitude = float(lati_loni_array[0])
+                longitude = float(lati_loni_array[1])
 
-    return True
+                geo_point = Geo_point(latitude, longitude)
+                # timestamped_point = Timestamped_point(timestamp, timestamp+window_length, geo_point)
+
+                point_array.append(geo_point)
+                counter +=1
+
+                if counter % 100000 == 0:
+                    print(counter , " lines read... ")
+                line = fp.readline()
+
+            except:
+                counter += 1
+                print("Error in line " , counter)
+                print(line)
+
+                line = fp.readline()
 
 
-def packed_import_points(point_array, nb_element, path)-> bool:
+    fp.close()
 
-    buffer = [0]*BUFSIZ
-    line = 1
-    current = 0
-    max_array = INIT_ARRAY_SIZE
+    return point_array
 
-    f = open(path, "r")
-    f1 = f.readlines()
-    for x in f1:
-        point_array.append(x)
-
-    f.close()
-
-    nb_element = current
-
-    #reading buffers from packed_read_point
-    # not finished
-
-    return True
 
 def packed_print_points(parray, nb_element) -> None:
 
