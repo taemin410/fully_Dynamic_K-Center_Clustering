@@ -1,7 +1,7 @@
 from algo_sliding import *
 from algo_fully_adv import *
 from algo_trajectories import *
-from data_sliding import *
+from data_sliding import sliding_import_points
 from data_fully_adv import *
 from query import *
 

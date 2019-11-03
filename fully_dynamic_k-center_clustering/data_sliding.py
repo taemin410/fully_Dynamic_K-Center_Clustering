@@ -10,11 +10,7 @@ def sliding_import_points(path, window_length):
             splitted_array = line.split('\t')
             timestamp = int(splitted_array[0])
 
-<<<<<<< HEAD
             lati_loni_array = splitted_array[1].split(' ') 
-=======
-            lati_loni_array = splitted_array[1].split(' ')
->>>>>>> de5bf82c075d8e1ba411d67060a77df71a4e1423
             latitude = float(lati_loni_array[0])
             longitude = float(lati_loni_array[1])
 
