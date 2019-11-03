@@ -44,7 +44,7 @@ def fully_adv_k_center(prog_args):
     size = int()
     array=None
     helper_array = None
-    clusters_array=[]
+    clusters_array = []
 
     queries.initialise_query_provider(prog_args["queries_path"])
     if prog_args["cluster_size"] == 0:
@@ -112,12 +112,12 @@ def main():
     #   INITIALIZE PROG_ARGS
     #
     prog_args={
-        "k": 5,
-        "epsilon": 0.01,
+        "k": 20,
+        "epsilon": 0.1,
         "d_min" : 3,
         "d_max" : 10,
         "points_path" : "dataset/timestamped_gps_coordinate.txt",
-        "queries_path" : "queries.dat",
+        "queries_path" : "dataset/readable.txt",
         "cluster_size" : 2,
         "window_length" : 10
     }

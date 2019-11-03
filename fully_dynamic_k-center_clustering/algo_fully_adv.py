@@ -1,5 +1,6 @@
 import point
-import query
+from set_ import Set_, Set_collection
+from query import query, query_provider
 from data_fully_adv import fully_adv_distance
 from utils import log_, shuffle_array
 from math import ceil, log
@@ -11,7 +12,7 @@ class Fully_adv_cluster:
         self.radius = radius # maximum cluster radius of current level
         self.centers = [None] * (k+1) # index of center of each cluster
         self.true_rad = [None] * k  # exact radius of each cluster
-        self.clusters = [None] * (k+1) # content of all clusters (array of sets)
+        self.clusters = Set_collection(k+1, cluster_size, nb_points) # content of all clusters (array of sets)
         self.nb_points = nb_points # total number of points in array
         self.array = array # pointer to all points
 
@@ -45,7 +46,7 @@ class Fully_adv_cluster:
         self.clusters.remove_element_set_collection(element_index)
         if cluster_index < self.k and element_index == self.centers[cluster_index]:
             self.nb = cluster_index
-            self.clusters.remove_element_set_collection(cluster_index, helper_array, size)
+            self.clusters.remove_all_elements_after_set(cluster_index, helper_array, size)
             shuffle_array(helper_array, size)
 
             for i in range(size):
@@ -102,13 +103,12 @@ def fully_adv_center_run(levels, nb_instances, queries, helper_array) -> None:
 
 def fully_adv_initialise_level_array(levels, k, eps, d_min, d_max, nb_instances, points, nb_points, cluster_size, helper_array) -> None:
     nb_instances = tmp = (1 + ceil( log(d_max / d_min) / log(1 + eps)))
-    levels = [None] * tmp
     helper_array = [None] * nb_points
 
     # assign new fully adv cluster to each index of array
-    levels[0] = Fully_adv_cluster(k, 0, points, nb_points, cluster_size)
-    for i in range(1, tmp):
-        levels[i] = Fully_adv_cluster(k, d_min, points, nb_points, cluster_size)
+    levels.append(Fully_adv_cluster(k, 0, points, nb_points, cluster_size))
+    for _ in range(1, tmp):
+        levels.append(Fully_adv_cluster(k, d_min, points, nb_points, cluster_size))
         d_min = (1 + eps) * d_min
 
 def fully_adv_delete_level_array(levels, helper_array):
@@ -123,6 +123,7 @@ def fully_adv_get_index_smallest(levels, nb_instances):
         return nb_instances
 
 def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
-    q = None
-    while queries.get_next_query_set(q, levels.clusters):
+    q = query()
+    print("@@@@Testing levels[0].clusters@@@@@", levels[0].clusters)
+    while queries.get_next_query_set(q, levels[0].clusters):
         fully_adv_apply_one_query(levels, nb_instances, q, helper_array)

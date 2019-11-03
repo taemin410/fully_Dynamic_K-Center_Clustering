@@ -4,9 +4,9 @@ BUFSIZ = 100
 Query_type = ["ADD", "REMOVE", "UPDATE", "LAST_QUERY_TYPE"]
 
 class query:
-    def __init__(self, type, data_index):
-        self.type = type
-        self.data_index = data_index
+    def __init__(self):
+        self.type = None
+        self.data_index = 0
 
 class query_provider:
     def __init__(self):
@@ -32,10 +32,8 @@ class query_provider:
                 return 0
 
         next_query.data_index = self.buffer[self.current]
-        if sets.has_element_set_collection(next_query.data_index):
-            next_query.type = "REMOVE"
-        else:
-            next_query.type = "ADD"
+        next_query.type = "REMOVE" if sets.has_element_set_collection(next_query.data_index) else "ADD"
+        
         self.current += 1
         return 1
 

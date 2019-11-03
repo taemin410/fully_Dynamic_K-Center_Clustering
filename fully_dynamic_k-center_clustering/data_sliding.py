@@ -16,12 +16,13 @@ def sliding_import_points(path, window_length):
                 latitude = float(lati_loni_array[0])
                 longitude = float(lati_loni_array[1])
 
+                # print(latitude, longitude)
                 geo_point = Geo_point(latitude, longitude)
-                timestamped_point = Timestamped_point(timestamp, timestamp+window_length, geo_point)
-
+                timestamped_point = Timestamped_point(timestamp, timestamp+int(window_length), geo_point)
+                    
                 point_array.append(timestamped_point)
                 counter +=1
-
+                                
                 if counter % 100000 == 0:
                     print(counter , "th line read... ")
 

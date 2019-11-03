@@ -31,15 +31,15 @@ class Sliding_level:
     def remove_expired_orphans(self, first_point) -> None:
         for i in range(0, self.k+2):
             if -1 != self.orphans[i] and self.orphans[i] < first_point:
-                level.orphans[i]= -1
-                level.parents[i]= -1
+                self.orphans[i]= -1
+                self.parents[i]= -1
 
     def create_orphan_simple(self, parent, orphan) -> None:
         if parent != orphan:
             for i in range(0, self.k+2):
                 if -1 == self.orphans[i]:
-                    level.orphans[i]= orphan
-                    level.parents[i]= parent
+                    self.orphans[i]= orphan
+                    self.parents[i]= parent
                     return
             #should not be printed
             print("create_orphan_simple(): SHOULD NOT PRINT")
@@ -48,15 +48,15 @@ class Sliding_level:
         if parent != orphan:
             for i in range(0, self.k+2):
                 if -1 == self.orphans[i]:
-                    level.orphans[i]= orphan
-                    level.parents[i]= parent
+                    self.orphans[i]= orphan
+                    self.parents[i]= parent
                     return
             self.remove_expired_orphans(self.attr[self.first_attr])
 
             for i in range(0, self.k+2):
                 if -1 == self.orphans[i]:
-                    level.orphans[i]= orphan
-                    level.parents[i]= parent
+                    self.orphans[i]= orphan
+                    self.parents[i]= parent
                     return
             #should not be printed
             print("create_orphan_complex(): SHOULD NOT PRINT")
@@ -156,8 +156,8 @@ class Sliding_level:
             self.remove_expired_points(self.first_point)
 
             index = self.first_attr
-            for i in range(0, self.attr_nb):
-                tmp = self.sliding_distance(array+element, array + self.attr[index])
+            for _ in range(0, self.attr_nb):
+                tmp = sliding_distance(array+element, array + self.attr[index])
                 if self.radius >= tmp:
                     if not flag:
                         flag = 1
