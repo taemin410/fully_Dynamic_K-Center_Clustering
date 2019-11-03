@@ -1,11 +1,13 @@
 # import point
 import math
 import utils
-from utils import log_
+from utils import *
+from data_sliding import *
+
 
 class Sliding_level:
 
-    def __init__(self,level=None,k=0,radius=0,array=None,nb_points=0):
+    def __init__(self,level=None, k=0,radius=0,array=None,nb_points=0):
         self.k=k #Maximum number of clusters allowed
         self.radius=radius #Cluster radius
         self.elements=[0]*nb_points #the ancestor of each element
@@ -31,15 +33,15 @@ class Sliding_level:
     def remove_expired_orphans(self, first_point) -> None:
         for i in range(0, self.k+2):
             if -1 != self.orphans[i] and self.orphans[i] < first_point:
-                level.orphans[i]= -1
-                level.parents[i]= -1
+                self.orphans[i]= -1
+                self.parents[i]= -1
 
     def create_orphan_simple(self, parent, orphan) -> None:
         if parent != orphan:
             for i in range(0, self.k+2):
                 if -1 == self.orphans[i]:
-                    level.orphans[i]= orphan
-                    level.parents[i]= parent
+                    self.orphans[i]= orphan
+                    self.parents[i]= parent
                     return
             #should not be printed
             print("create_orphan_simple(): SHOULD NOT PRINT")
@@ -48,15 +50,15 @@ class Sliding_level:
         if parent != orphan:
             for i in range(0, self.k+2):
                 if -1 == self.orphans[i]:
-                    level.orphans[i]= orphan
-                    level.parents[i]= parent
+                    self.orphans[i]= orphan
+                    self.parents[i]= parent
                     return
             self.remove_expired_orphans(self.attr[self.first_attr])
 
             for i in range(0, self.k+2):
                 if -1 == self.orphans[i]:
-                    level.orphans[i]= orphan
-                    level.parents[i]= parent
+                    self.orphans[i]= orphan
+                    self.parents[i]= parent
                     return
             #should not be printed
             print("create_orphan_complex(): SHOULD NOT PRINT")
@@ -143,8 +145,8 @@ class Sliding_level:
 
     def sliding_k_center_add(self, element) -> None:
 
-        i_min, index, flag = 0
-        d_min, tmp = double(), double()
+        flag = 0
+        d_min, tmp = float(), float()
 
         # array = Timestamped_point()
         array = self.array
@@ -157,7 +159,7 @@ class Sliding_level:
 
             index = self.first_attr
             for i in range(0, self.attr_nb):
-                tmp = self.sliding_distance(array+element, array + self.attr[index])
+                tmp = sliding_distance(array+element, array + self.attr[index])
                 if self.radius >= tmp:
                     if not flag:
                         flag = 1
@@ -170,31 +172,80 @@ class Sliding_level:
                 #update the for loop index
                 index = (index+1)%(self.k+1)
 
+            if not flag:
+                self.add_cluster(element)
+            else:
+                self.elements[element] = self.attr[i_min]
+                self.repr[i_min] = element
+
+
             #update the while loop condition
             self.first_point +=1
 
+    def sliding_delete_level(self):
+        self.elements = None
+        self.attr = None
+        self.repr = None
+        self.orphans = None
+        self.parents = None
+        self.centers = None
+        self.sp_points = None
+
+    def sliding_compute_true_radius(self):
+        true_radius = 0.0 
+        i= self.first_point
+        while i < self.last_point:
+            index_cluster = self.sliding_find_cluster(i)
+            index_center = self.centers[index_cluster]
+            tmp = sliding_distance(self.array + i , self.array+ index_center)
+
+            if true_radius < tmp :
+                true_radius = tmp
+        
+        return true_radius
+
+    def sliding_find_cluster(self, element):
+        parent = self.elements[element]
+
+        for i in range(0, self.cluster_nb):
+            if parent == self.centers[i]:
+                return i 
+        
+        for i in range(0, self.k +2 ):
+            if self.orphans[i] != -1 and self.parents[i] == parent :
+                center = self.sp_points[self.k+1+i]
+                for j in range(0, self.cluster_nb):
+                    if center == self.centers[j]:
+                        return j 
+                #Should terminate
+                print("ERROR IN SLIDING_FIND_CLUSTER")
+        print("ERROR IN SLIDING_FIND_CLUSTER")
 
 
-def sliding_initialise_levels_array(levels, k, eps, d_min, d_max, nb_instances, array, nb_points)-> None:
+def sliding_initialise_levels_array(levels, k, eps, d_min, d_max, nb_instances, array, nb_points)-> list:
     tmp = 1 + math.ceil(math.log(d_max / d_min) / math.log(1 + eps))
     nb_instances= tmp
-    levels = [0] * tmp
-    init=Sliding_level(levels[0], k, 0, array, nb_points)
+    # levels = [None] * tmp
+    init=Sliding_level(levels, k, 0, array, nb_points)
+    levels.append(init)
     for i in range(0, tmp):
         #initialize each array
         level= Sliding_level(levels[i], k, d_min, array, nb_points)
         d_min = (1+eps) * d_min
-
+        levels.append(level)
+    
+    return levels 
 
     # need to put level objects in the levels array
 
 
 def sliding_delete_levels_array(levels, nb_instances) -> None:
     for i in range(0, nb_instances):
-        self.sliding_delete_level(levels,i)
+        levels[i].sliding_delete_level()
 
     #maybe deletion and freeing of levels array can be simpler
 
+    
 
 def sliding_get_index_smallest(levels, nb_instances) -> int:
     upper_limit = levels.k +1
@@ -206,35 +257,42 @@ def sliding_get_index_smallest(levels, nb_instances) -> int:
     return nb_instances
 
 def sliding_write_log(levels, nb_instances, element) ->int:
+    print("HI!")
 
-    if has_log():
+    log = Log("test.log")
+    LOG = log.get_log_file()
+    print(LOG)
+    if log.has_log():
         result = sliding_get_index_smallest(levels, nb_instances)
         if result == nb_instances:
-            log.write("Error no feasible radius possible found after inserting ", element)
+            LOG.write("Error no feasible radius possible found after inserting ", element)
             return 1
-
-    if has_long_log():
-        log.write(levels[result].last_point - 1, end = ' ')
-        log.write(levels[result].last_point - levels[result].first_point, end=' ')
-        log.write(result, end = ' ')
-        log.write(levels[result].radius, end = ' ')
-        log.write(sliding_compute_true_radius(levels+result), end = ' ')
-        log.write(levels[result].cluster_nb)
+        print(result)
+        print("LOG!!")
+    if log.has_long_log():
+        LOG.write(levels[result].last_point - 1, end = ' ')
+        LOG.write(levels[result].last_point - levels[result].first_point, end=' ')
+        LOG.write(result, end = ' ')
+        LOG.write(levels[result].radius, end = ' ')
+        LOG.write(levels[result].sliding_compute_true_radius(), end = ' ')
+        LOG.write(levels[result].cluster_nb)
 
     else:
-        log.write(levels[result].last_point - 1, end = ' ')
-        log.write(levels[result].last_point - levels[result].first_point, end=' ')
-        log.write(result, end = ' ')
-        log.write(levels[result].radius, end = ' ')
-        log.write(levels[result].cluster_nb)
+        LOG.write(levels[result].last_point - 1, end = ' ')
+        LOG.write(levels[result].last_point - levels[result].first_point, end=' ')
+        LOG.write(result, end = ' ')
+        LOG.write(levels[result].radius, end = ' ')
+        LOG.write(levels[result].cluster_nb)
 
     return 0
 
-#Have not checked running
+#Have not checked sliding_compute_centers
 def sliding_k_center_run(levels, nb_instances) -> None:
-    for i in range(0, levels.nb_points):
+    for i in range(0, levels[0].nb_points):
         for j in range(0, nb_instances):
-            sliding_k_center_add(levels+j , i )
+            levels[j].sliding_k_center_add( i )
         for j in range(0, nb_instances):
-            sliding_compute_centers(levels+j)
+            levels[j].sliding_compute_centers()
         sliding_write_log(levels, nb_instances, i)
+
+        print("why?")

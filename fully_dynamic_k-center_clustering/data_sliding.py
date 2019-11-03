@@ -1,4 +1,8 @@
-from point import Geo_point, Timestamped_point
+
+from point import *
+
+def sliding_distance(a,b):
+	return euclidean_distance(a.point , b.point)
 
 def sliding_import_points(path, window_length):
 
@@ -17,7 +21,7 @@ def sliding_import_points(path, window_length):
                 longitude = float(lati_loni_array[1])
 
                 geo_point = Geo_point(latitude, longitude)
-                timestamped_point = Timestamped_point(timestamp, timestamp+window_length, geo_point)
+                timestamped_point = Timestamped_point(timestamp, timestamp+int(window_length), geo_point)
 
                 point_array.append(timestamped_point)
                 counter +=1
@@ -34,4 +38,4 @@ def sliding_import_points(path, window_length):
             line = fp.readline()
     fp.close()
 
-    return point_array
+    return counter, point_array
