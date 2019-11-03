@@ -1,9 +1,9 @@
 NOT_IN_SET = -1
 
 class Element_pointer:
-    def __init__(self):
-        self.set_index = 0
-        self.pointer = 0
+    def __init__(self, set_index=0, pointer=0):
+        self.set_index = set_index
+        self.pointer = pointer
 
 class Set_:
     def __init__(self, max_size, range_, set_index):
@@ -13,7 +13,7 @@ class Set_:
         self.max_card = max_size
         self.range = range_
         self.elements = [None] * (max_size)  # integer array
-        self.elm_ptr = [-1] * (range_) # element pointer array
+        self.elm_ptr = [Element_pointer(-1, -1)] * (range_) # element pointer array
 
     def free_set(self) -> None:
         self.elements = [] 
@@ -43,8 +43,8 @@ class Set_:
 
 class Set_collection:
     def __init__(self, n, max_size, range_):
-        self.sets = [] # array of set
-        self.nb_sets = n 
+        self.sets = initialise_set_n_common(n, max_size, range_) # array of set
+        self.nb_sets = n
 
     def free_set_collection(self) -> None:
         self.sets = []
@@ -78,7 +78,7 @@ class Set_collection:
 
 
 '''Should Not be included in Set_ or Set_collection'''
-def initialise_set_n_common(self, n, max_size, range_) -> list:
+def initialise_set_n_common(n, max_size, range_) -> list:
     set_coll = []
     _set = Set_(max_size, range_, 0)
     set_coll.append(_set)
@@ -90,7 +90,7 @@ def initialise_set_n_common(self, n, max_size, range_) -> list:
 
     return set_coll
 
-def free_set_n_common(self, n_common_set, n) -> None:
+def free_set_n_common(n_common_set, n) -> None:
     for i in range(n):
         n_common_set[i].free_set()
 

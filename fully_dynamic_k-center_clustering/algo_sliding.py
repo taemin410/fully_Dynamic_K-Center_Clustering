@@ -158,7 +158,7 @@ class Sliding_level:
             self.remove_expired_points(self.first_point)
 
             index = self.first_attr
-            for i in range(0, self.attr_nb):
+            for _ in range(0, self.attr_nb):
                 tmp = sliding_distance(array+element, array + self.attr[index])
                 if self.radius >= tmp:
                     if not flag:

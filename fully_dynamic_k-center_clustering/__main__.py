@@ -37,14 +37,14 @@ def sliding_k_center(prog_args):
 
 
 def fully_adv_k_center(prog_args):
-    
+
     nb_instances=int()
     size = int()
     array=None
     helper_array = None
-    clusters_array=[]
+    clusters_array = []
 
-    
+
     size, array = fully_adv_import_points(prog_args["points_path"], prog_args['window_length'])
 
     queries = query_provider()
@@ -88,13 +88,13 @@ def main():
     #   INITIALIZE PROG_ARGS
     #
     prog_args={
-        "k": 10,
-        "epsilon": 0.01,
-        "d_min" : 1,
-        "d_max" : 1000,
+        "k": 20,
+        "epsilon": 0.1,
+        "d_min" : 3,
+        "d_max" : 10,
         "points_path" : "dataset/timestamped_gps_coordinate.txt",
-        "queries_path" : "queries.dat",
-        "cluster_size" : 10,
+        "queries_path" : "dataset/readable.txt",
+        "cluster_size" : 2,
         "window_length" : 10
     }
 
