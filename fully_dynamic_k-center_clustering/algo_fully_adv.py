@@ -68,12 +68,11 @@ def fully_adv_write_log(levels, nb_instances, nb_points, q) -> int:
             return 4 #only_bad_levels_error
 
         content = 'key: ' + str(key) + ' ' + 'data index: ' + \
-            str(q.data_index) + 'nb_points: ' + str(nb_points) + \
-            'result: ' + str(result)+ 'radius: ' + str(levels[result].radius) + 'true radius: ' + str(levels[result].fully_adv_compute_true_radius()) \
+            str(q.data_index) + ' ' + 'nb_points: ' + str(nb_points) + ' '\
+            'result: ' + str(result) + ' ' + 'radius: ' + str(levels[result].radius) + ' ' + 'true radius: ' + str(levels[result].fully_adv_compute_true_radius()) \
             + '\n'
 
         if log_.has_long_log():
-
             f = log_.get_log_file()
             f.write(content)
 
@@ -101,7 +100,20 @@ def fully_adv_center_run(levels, nb_instances, queries, helper_array) -> None:
         fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
 
 
-def fully_adv_initialise_level_array(levels, k, eps, d_min, d_max, nb_instances, points, nb_points, cluster_size, helper_array) -> int:
+#
+#   params:
+#       levels - clusters array of Fully_adv_cluster obj
+#       k - number of cluster
+#       eps - epsilon
+#       d_min - minimum distance between two data points
+#       d_max - maximum distance between two data points
+#       nb_instances - number of data points
+#       points - array of Geo Point array
+#       nb_points - number of data points
+#       cluster_size - size of the clusters
+#       helper_array - ??
+#
+def fully_adv_initialise_level_array(levels, k, eps, d_min, d_max, nb_instances, points, nb_points, cluster_size, helper_array) -> tuple:
     nb_instances = tmp = (1 + ceil( log(d_max / d_min) / log(1 + eps)))
     helper_array = [None] * nb_points
 
@@ -111,7 +123,7 @@ def fully_adv_initialise_level_array(levels, k, eps, d_min, d_max, nb_instances,
         levels.append(Fully_adv_cluster(k, d_min, points, nb_points, cluster_size))
         d_min = (1 + eps) * d_min
 
-    return nb_instances
+    return nb_instances, helper_array
 
 def fully_adv_delete_level_array(levels, helper_array):
     levels = None

@@ -26,7 +26,7 @@ def fully_adv_import_points(path, window_length):
                 geo_point = Geo_point(latitude, longitude)
                 # timestamped_point = Timestamped_point(timestamp, timestamp+window_length, geo_point)
                 point_array.append(geo_point)
-                counter +=1
+                counter += 1
                 
                 if counter % 100000 == 0:
                     print(counter , " lines read... ")
