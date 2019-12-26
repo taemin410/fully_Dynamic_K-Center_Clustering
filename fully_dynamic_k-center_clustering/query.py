@@ -24,22 +24,26 @@ class query_provider:
     def free_query_provider(self) -> None:
         self.fd.close()
 
-    def get_next_query_set(self, next_query, sets) -> int:
+    def get_next_query_set(self, next_query, sets) -> bool:
+
         if self.current >= self.nb_query:
             self.current = 0
-            print("@@@@@@@@@@@@@query", self.nb_query)
-            self.nb_query = self.fd.readline()
-
-            if not self.nb_query:
-                print("not")
-                return 0
+            
+            line = self.fd.readline()
+            line = line[:-1]
+            print(line)
+            if line == '9963':
+                print(line)
+            if line != '':
+                self.nb_query = int(line)
+            else:
+                return False
 
         next_query.data_index = int(self.nb_query)
         next_query.type = "REMOVE" if sets.has_element_set_collection(next_query.data_index) else "ADD"
 
         self.current += 1
-        print("yes")
-        return 1
+        return True
 
     def get_next_query_lookup(self, next_query, lookup) -> int:
         if self.current >= self.nb_query:

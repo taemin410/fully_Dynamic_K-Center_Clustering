@@ -43,18 +43,16 @@ def fully_adv_k_center(prog_args):
     array=None
     helper_array = None
     clusters_array = []
-
     
     size, array = fully_adv_import_points(prog_args["points_path"], prog_args['window_length'])
 
     queries = query_provider()
 
-
     queries.initialise_query_provider(prog_args["queries_path"])
     if prog_args["cluster_size"] == 0:
         prog_args["cluster_size"] = size
 
-    fully_adv_initialise_level_array(clusters_array, prog_args["k"],
+    nb_instances = fully_adv_initialise_level_array(clusters_array, prog_args["k"],
                                     prog_args["epsilon"], prog_args["d_min"],
                                 	prog_args["d_max"],nb_instances, array,
                                     size, prog_args["cluster_size"], helper_array)
@@ -91,10 +89,10 @@ def main():
         "k": 20,
         "epsilon": 0.1,
         "d_min" : 3,
-        "d_max" : 10,
-        "points_path" : "dataset/timestamped_gps_coordinate.txt",
+        "d_max" : 20,
+        "points_path" : "dataset/xaa.txt",
         "queries_path" : "dataset/readable.txt",
-        "cluster_size" : 2,
+        "cluster_size" : 5000,
         "window_length" : 10
     }
 
@@ -104,6 +102,21 @@ def main():
 
     readpath = input("Path to the dataset (relative or full path) : ")
     window_length = input("if sliding window model Window length: ")
+
+    #
+    #   Split large query data points into smaller parts
+    # 
+    count = 0 
+    File_object = open("dataset/smaller_queries.txt", "w")
+
+    with open('dataset/readable.txt','r') as f:
+        for line in f:
+            if count > 5000:
+                break
+            File_object.write(line)
+            count += 1
+
+    prog_args["queries_path"] = "dataset/smaller_queries.txt"
 
     if readpath:
         prog_args["points_path"]= readpath
@@ -119,5 +132,8 @@ def main():
 
     print("Program terminates")
 
+    File_object.close()
+    f.close()
+    
 #run main()
 main()

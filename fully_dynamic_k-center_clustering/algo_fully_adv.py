@@ -27,7 +27,6 @@ class Fully_adv_cluster:
     def fully_adv_k_center_add(self, index) -> None:
         for i in range(self.nb):
             tmp = fully_adv_distance(self.array[i], self.array[self.centers[i]])
-
             if self.radius >= tmp:
                 self.clusters.add_element_set_collection(index, i)
                 self.true_rad[i] = max(tmp, self.true_rad[i])
@@ -40,13 +39,13 @@ class Fully_adv_cluster:
             self.nb += 1
 
     def fully_adv_k_center_delete(self, element_index, helper_array) -> None:
-        size = None
+        size = int()
 
         cluster_index = self.clusters.get_set_index(element_index)
         self.clusters.remove_element_set_collection(element_index)
         if cluster_index < self.k and element_index == self.centers[cluster_index]:
             self.nb = cluster_index
-            self.clusters.remove_all_elements_after_set(cluster_index, helper_array, size)
+            size = self.clusters.remove_all_elements_after_set(cluster_index, helper_array, size)
             shuffle_array(helper_array, size)
 
             for i in range(size):
@@ -61,33 +60,31 @@ class Fully_adv_cluster:
 
 def fully_adv_write_log(levels, nb_instances, nb_points, q) -> int:
     key = 'a' if q.type == "ADD" else 'd'
-    print("writing log")
     if log_.has_log():
         result = fully_adv_get_index_smallest(levels, nb_instances)
-        print("test")
+
         if result == nb_instances:
-            print('Error, no feasible radius possible found after intersing', q.data_index)
+            print('Error, no feasible radius possible found after inserting', q.data_index)
             return 4 #only_bad_levels_error
 
-        if log_.has_long_log():
-            print("tesst2")
-            f = log_.get_log_file()
-            f.write("%c %u %u c%u %lf %lf %u\n",
-                key, q.data_index, nb_points, result, levels[result].radius, levels[result].fully_adv_compute_true_radius(levels[result].nb))
-            f.close()
-        else:
-            print("test3")
-            f = log_.get_log_file()
-            f.write("%c %u %u c%u %lf %lf %u\n",
-                key, q.data_index, nb_points, result, levels[result].radius, levels[result].nb)
-            f.close()
+        content = 'key: ' + str(key) + ' ' + 'data index: ' + \
+            str(q.data_index) + 'nb_points: ' + str(nb_points) + \
+            'result: ' + str(result)+ 'radius: ' + str(levels[result].radius) + 'true radius: ' + str(levels[result].fully_adv_compute_true_radius()) \
+            + '\n'
 
+        if log_.has_long_log():
+
+            f = log_.get_log_file()
+            f.write(content)
+
+        else:
+            f = log_.get_log_file()
+            f.write(content)
     return 0
 
 def fully_adv_apply_one_query(levels, nb_instances, q, helper_array) -> None:
     nb_points = 0
     if q.type == "ADD":
-        print(q.data_index)
         nb_points += 1
         for i in range(nb_instances):
             levels[i].fully_adv_k_center_add(q.data_index)
@@ -104,7 +101,7 @@ def fully_adv_center_run(levels, nb_instances, queries, helper_array) -> None:
         fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
 
 
-def fully_adv_initialise_level_array(levels, k, eps, d_min, d_max, nb_instances, points, nb_points, cluster_size, helper_array) -> None:
+def fully_adv_initialise_level_array(levels, k, eps, d_min, d_max, nb_instances, points, nb_points, cluster_size, helper_array) -> int:
     nb_instances = tmp = (1 + ceil( log(d_max / d_min) / log(1 + eps)))
     helper_array = [None] * nb_points
 
@@ -114,19 +111,23 @@ def fully_adv_initialise_level_array(levels, k, eps, d_min, d_max, nb_instances,
         levels.append(Fully_adv_cluster(k, d_min, points, nb_points, cluster_size))
         d_min = (1 + eps) * d_min
 
+    return nb_instances
+
 def fully_adv_delete_level_array(levels, helper_array):
     levels = None
     helper_array = None
 
 def fully_adv_get_index_smallest(levels, nb_instances):
     for i in range(nb_instances):
-        if (0 == levels[i].clusters.sets[levels[i].k].card):
+        if (levels[i].clusters.sets[levels[i].k].card == 0):
             return i
 
-        return nb_instances
+    return nb_instances
 
 def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
     q = query()
-    # print("@@@@Testing levels[0].clusters@@@@@", levels[0].clusters)
+    count = 0
     while queries.get_next_query_set(q, levels[0].clusters):
+        # print(count)
         fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
+        count+=1

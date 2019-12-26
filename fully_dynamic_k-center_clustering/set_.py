@@ -61,7 +61,7 @@ class Set_collection:
     def get_set_index(self, element) -> int:
         return self.sets[0].elm_ptr[element].set_index
 
-    def remove_all_elements_after_set(self, set_index, array, size) -> None:
+    def remove_all_elements_after_set(self, set_index, array, size) -> int:
         size = 0
         while set_index < self.nb_sets:
             for iter_set in range(self.sets[set_index].card):
@@ -72,6 +72,8 @@ class Set_collection:
 
             self.sets[set_index].card = 0
             set_index += 1
+
+        return size
 
     def has_element_set_collection(self, element) -> int:
         return NOT_IN_SET != self.sets[0].elm_ptr[element].set_index
