@@ -37,7 +37,7 @@ def sliding_k_center(prog_args):
 
 
 def fully_adv_k_center(prog_args):
-    
+
     nb_instances=int()
     size = int()
     array=None

@@ -248,7 +248,7 @@ def sliding_delete_levels_array(levels, nb_instances) -> None:
     
 
 def sliding_get_index_smallest(levels, nb_instances) -> int:
-    upper_limit = levels.k +1
+    upper_limit = levels[0].k +1
     for i in range(0, nb_instances):
         if (levels[i].attr_nb < upper_limit and
             levels[i].cluster_nb <upper_limit):
@@ -257,32 +257,31 @@ def sliding_get_index_smallest(levels, nb_instances) -> int:
     return nb_instances
 
 def sliding_write_log(levels, nb_instances, element) ->int:
-    print("HI!")
-
-    log = Log("test.log")
-    LOG = log.get_log_file()
-    print(LOG)
-    if log.has_log():
+    
+    # print(log_)
+    log = log_.get_log_file()
+    if log_.has_log():
         result = sliding_get_index_smallest(levels, nb_instances)
         if result == nb_instances:
-            LOG.write("Error no feasible radius possible found after inserting ", element)
+            log.write("Error no feasible radius possible found after inserting "+str(element))
             return 1
         print(result)
-        print("LOG!!")
-    if log.has_long_log():
-        LOG.write(levels[result].last_point - 1, end = ' ')
-        LOG.write(levels[result].last_point - levels[result].first_point, end=' ')
-        LOG.write(result, end = ' ')
-        LOG.write(levels[result].radius, end = ' ')
-        LOG.write(levels[result].sliding_compute_true_radius(), end = ' ')
-        LOG.write(levels[result].cluster_nb)
 
-    else:
-        LOG.write(levels[result].last_point - 1, end = ' ')
-        LOG.write(levels[result].last_point - levels[result].first_point, end=' ')
-        LOG.write(result, end = ' ')
-        LOG.write(levels[result].radius, end = ' ')
-        LOG.write(levels[result].cluster_nb)
+
+        if log_.has_long_log():
+            log.write(levels[result].last_point - 1, end = ' ')
+            log.write(levels[result].last_point - levels[result].first_point, end=' ')
+            log.write(result, end = ' ')
+            log.write(levels[result].radius, end = ' ')
+            log.write(levels[result].sliding_compute_true_radius(), end = ' ')
+            log.write(levels[result].cluster_nb)
+
+        else:
+            log.write(levels[result].last_point - 1, end = ' ')
+            log.write(levels[result].last_point - levels[result].first_point, end=' ')
+            log.write(result, end = ' ')
+            log.write(levels[result].radius, end = ' ')
+            log.write(levels[result].cluster_nb)
 
     return 0
 
@@ -295,4 +294,3 @@ def sliding_k_center_run(levels, nb_instances) -> None:
             levels[j].sliding_compute_centers()
         sliding_write_log(levels, nb_instances, i)
 
-        print("why?")
