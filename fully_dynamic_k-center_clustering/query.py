@@ -37,8 +37,6 @@ class query_provider:
             else:
                 return False
 
-            print("line: ", self.nb_query)
-
         next_query.data_index = self.nb_query
         next_query.type = "REMOVE" if sets.has_element_set_collection(next_query.data_index) else "ADD"
 

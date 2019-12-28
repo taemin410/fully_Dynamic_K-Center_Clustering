@@ -4,6 +4,7 @@ from query import query, query_provider
 from data_fully_adv import fully_adv_distance
 from utils import log_, shuffle_array
 from math import ceil, log
+import static_variables as sv
 
 class Fully_adv_cluster:
     def __init__(self, k, radius, array, nb_points, cluster_size):
@@ -24,16 +25,21 @@ class Fully_adv_cluster:
         self.nb_points = 0
         self.array = None
 
+    '''
+
+      params:
+          index - data_index of next query obj (data_index denotes the random query from query text)
+    '''
     def fully_adv_k_center_add(self, index) -> None:
         for i in range(self.nb):
-            tmp = fully_adv_distance(self.array[i], self.array[self.centers[i]])
+            tmp = fully_adv_distance(self.array[index], self.array[self.centers[i]])
             if self.radius >= tmp:
                 self.clusters.add_element_set_collection(index, i)
                 self.true_rad[i] = max(tmp, self.true_rad[i])
                 return
 
         self.clusters.add_element_set_collection(index, self.nb)
-        if self.nb <self.k:
+        if self.nb < self.k:
             self.centers[self.nb] = index
             self.true_rad[self.nb] = 0
             self.nb += 1
@@ -82,17 +88,20 @@ def fully_adv_write_log(levels, nb_instances, nb_points, q) -> int:
     return 0
 
 def fully_adv_apply_one_query(levels, nb_instances, q, helper_array) -> None:
-    nb_points = 0
     if q.type == "ADD":
-        nb_points += 1
+        sv.nb_points += 1
+
+        # add a new data point to all clustering environments
         for i in range(nb_instances):
             levels[i].fully_adv_k_center_add(q.data_index)
     else:
-        nb_points -= 1
+        sv.nb_points -= 1
+
+        # delete a data point from all clustering environments
         for i in range(nb_instances):
             levels[i].fully_adv_k_center_delete(q.data_index, helper_array)
 
-    return fully_adv_write_log(levels, nb_instances, nb_points, q)
+    return fully_adv_write_log(levels, nb_instances, sv.nb_points, q)
 
 def fully_adv_center_run(levels, nb_instances, queries, helper_array) -> None:
     q = None #query type pointer
@@ -100,19 +109,27 @@ def fully_adv_center_run(levels, nb_instances, queries, helper_array) -> None:
         fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
 
 
-#
-#   params:
-#       levels - clusters array of Fully_adv_cluster obj
-#       k - number of cluster
-#       eps - epsilon
-#       d_min - minimum distance between two data points
-#       d_max - maximum distance between two data points
-#       nb_instances - number of data points
-#       points - array of Geo Point array
-#       nb_points - number of data points
-#       cluster_size - size of the clusters
-#       helper_array - ??
-#
+'''
+    Updates the array of clustering environment
+        Each element in array represents the clustering which runs as fully adv model.
+        This element contains different clusters, which is the group of data points (e.g., geo point).
+
+    params:
+        levels - clusters array of Fully_adv_cluster obj
+        k - number of cluster
+        eps - epsilon
+        d_min - minimum distance between two data points
+        d_max - maximum distance between two data points
+        nb_instances - number of data points
+        points - array of Geo Point array
+        nb_points - number of data points
+        cluster_size - size of the clusters
+        helper_array - ??
+
+    return:
+        nb_instances - number of dynamic clustering environments
+        helper_array - helper array
+'''
 def fully_adv_initialise_level_array(levels, k, eps, d_min, d_max, nb_instances, points, nb_points, cluster_size, helper_array) -> tuple:
     nb_instances = tmp = (1 + ceil( log(d_max / d_min) / log(1 + eps)))
     helper_array = [None] * nb_points
