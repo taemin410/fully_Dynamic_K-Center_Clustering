@@ -26,9 +26,10 @@ class Fully_adv_cluster:
         self.array = None
 
     '''
+        Add new element to all of clustering environments.
 
-      params:
-          index - data_index of next query obj (data_index denotes the random query from query text)
+        params:
+            index - data_index of next query obj (data_index denotes the random query index from query text)
     '''
     def fully_adv_k_center_add(self, index) -> None:
         for i in range(self.nb):
@@ -104,8 +105,8 @@ def fully_adv_apply_one_query(levels, nb_instances, q, helper_array) -> None:
     return fully_adv_write_log(levels, nb_instances, sv.nb_points, q)
 
 def fully_adv_center_run(levels, nb_instances, queries, helper_array) -> None:
-    q = None #query type pointer
-    while queries.get_next_query_set(levels[0].clusters):
+    q = query() #query type pointer
+    while queries.get_next_query_set(q, levels[0].clusters):
         fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
 
 
@@ -155,8 +156,5 @@ def fully_adv_get_index_smallest(levels, nb_instances):
 
 def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
     q = query()
-    count = 0
     while queries.get_next_query_set(q, levels[0].clusters):
-        # print(count)
         fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
-        count+=1

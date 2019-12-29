@@ -97,10 +97,10 @@ def main():
         "k": 20,
         "epsilon": 0.1,
         "d_min" : 3,
-        "d_max" : 20,
+        "d_max" : 30,
         "points_path" : "dataset/xaa.txt",
         "queries_path" : "dataset/readable.txt",
-        "cluster_size" : 5000,
+        "cluster_size" : 10000,
         "window_length" : 10
     }
 

@@ -19,6 +19,15 @@ class Set_:
         self.elements = [] 
         self.elm_ptr = []
 
+    '''
+        Add new element to this set. Here, element represents the index of the data point.
+
+        params:
+            element - index of the data point within data point obj array.
+
+        return:
+            None
+    '''
     def add_element_set(self, element) -> None:
         assert element < self.range
         assert -1 == self.elm_ptr[element].set_index
@@ -27,6 +36,12 @@ class Set_:
         self.elements[self.card] = element
         self.elm_ptr[element].set_index = self.index
         self.elm_ptr[element].pointer = self.card
+
+        # print("elm_ptr info")
+        # print("element: ", element)
+        # print("elm_ptr index: ", self.index)
+        # print("elm_ptr cardinality", self.card)
+
         self.card += 1
 
     def remove_element_set(self, element) -> None:
@@ -50,6 +65,16 @@ class Set_collection:
         self.sets = []
         self.nb_sets = 0
 
+    '''
+        Add new element to corresponding cluster.
+
+        params:
+            element - data_index of next query obj (data_index denotes the random query index from query text)
+            set_index - index of the set (index of cluster within the cluster array)
+
+        return:
+            None
+    '''
     def add_element_set_collection(self, element, set_index) -> None:
         assert set_index < self.nb_sets
         self.sets[set_index].add_element_set(element)
