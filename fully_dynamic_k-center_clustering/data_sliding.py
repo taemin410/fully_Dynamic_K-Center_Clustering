@@ -1,8 +1,8 @@
 
-from point import *
+from point import Geo_point, Timestamped_point, euclidean_distance
 
 def sliding_distance(a,b):
-	return euclidean_distance(a.point , b.point)
+	return euclidean_distance(a.geo_point , b.geo_point)
 
 def sliding_import_points(path, window_length):
 

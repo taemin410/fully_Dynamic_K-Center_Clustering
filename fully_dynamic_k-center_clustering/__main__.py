@@ -30,10 +30,12 @@ def sliding_k_center(prog_args):
 
 
     levels = []
-    sliding_initialise_levels_array(levels, prog_args["k"], prog_args["epsilon"], prog_args["d_min"],
+    nb_instances = sliding_initialise_levels_array(levels, prog_args["k"], prog_args["epsilon"], prog_args["d_min"],
 					prog_args["d_max"], nb_instances, array, size)
 
     sliding_k_center_run(levels, nb_instances)
+
+    print("sliding model finished")
 
 
 def fully_adv_k_center(prog_args):
@@ -97,11 +99,11 @@ def main():
         "k": 20,
         "epsilon": 0.1,
         "d_min" : 3,
-        "d_max" : 30,
+        "d_max" : 50,
         "points_path" : "dataset/xaa.txt",
         "queries_path" : "dataset/readable.txt",
-        "cluster_size" : 10000,
-        "window_length" : 10
+        "cluster_size" : 100,
+        "window_length" : 500
     }
 
     #

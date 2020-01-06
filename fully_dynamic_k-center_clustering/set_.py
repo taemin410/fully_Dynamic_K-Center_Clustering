@@ -37,11 +37,6 @@ class Set_:
         self.elm_ptr[element].set_index = self.index
         self.elm_ptr[element].pointer = self.card
 
-        # print("elm_ptr info")
-        # print("element: ", element)
-        # print("elm_ptr index: ", self.index)
-        # print("elm_ptr cardinality", self.card)
-
         self.card += 1
 
     def remove_element_set(self, element) -> None:
