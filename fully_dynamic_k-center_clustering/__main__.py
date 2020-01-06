@@ -99,7 +99,7 @@ def main():
         "d_max" : 30,
         "points_path" : "dataset/xaa.txt",
         "queries_path" : "dataset/readable.txt",
-        "cluster_size" : 10000,
+        "cluster_size" : 50000,
         "window_length" : 10
     }
 
@@ -113,17 +113,17 @@ def main():
     #
     #   Split large query data points into smaller parts
     # 
-    # count = 0 
-    # File_object = open("dataset/smaller_queries.txt", "w")
+    count = 0 
+    File_object = open("dataset/smaller_queries.txt", "w")
 
-    # with open('dataset/readable.txt','r') as f:
-    #     for line in f:
-    #         if count > 5000:
-    #             break
-    #         File_object.write(line)
-    #         count += 1
+    with open('dataset/readable.txt','r') as f:
+        for line in f:
+            if count > 50000:
+                break
+            File_object.write(line)
+            count += 1
 
-    # prog_args["queries_path"] = "dataset/smaller_queries.txt"
+    prog_args["queries_path"] = "dataset/smaller_queries.txt"
 
     if readpath:
         prog_args["points_path"]= readpath
