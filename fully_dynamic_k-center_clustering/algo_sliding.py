@@ -1,8 +1,8 @@
 # import point
 import math
 import utils
-from utils import *
-from data_sliding import *
+from utils import log_
+from data_sliding import sliding_import_points, sliding_distance
 
 
 class Sliding_level:
@@ -105,8 +105,8 @@ class Sliding_level:
 
         for i in range(0, self.cluster_nb):
             #just pass index of element maybe?
-            tmp = sliding_distance(self.array+element,
-                                   self.array+self.centers[i])
+            tmp = sliding_distance(self.array[element],
+                                   self.array[self.centers[i]])
             if self.radius >= tmp:
                 self.sp_points[elm_index] = self.centers[i]
                 return 0
@@ -159,7 +159,7 @@ class Sliding_level:
 
             index = self.first_attr
             for _ in range(0, self.attr_nb):
-                tmp = sliding_distance(array+element, array + self.attr[index])
+                tmp = sliding_distance(array[element], array[self.attr[index]])
                 if self.radius >= tmp:
                     if not flag:
                         flag = 1
@@ -197,7 +197,7 @@ class Sliding_level:
         while i < self.last_point:
             index_cluster = self.sliding_find_cluster(i)
             index_center = self.centers[index_cluster]
-            tmp = sliding_distance(self.array + i , self.array+ index_center)
+            tmp = sliding_distance(self.array[i] , self.array[index_center])
 
             if true_radius < tmp :
                 true_radius = tmp
@@ -234,7 +234,8 @@ def sliding_initialise_levels_array(levels, k, eps, d_min, d_max, nb_instances, 
         d_min = (1+eps) * d_min
         levels.append(level)
     
-    return levels 
+    #levels array is updated by "Pass by reference"
+    return nb_instances 
 
     # need to put level objects in the levels array
 
@@ -265,23 +266,18 @@ def sliding_write_log(levels, nb_instances, element) ->int:
         if result == nb_instances:
             log.write("Error no feasible radius possible found after inserting "+str(element))
             return 1
-        print(result)
+
 
 
         if log_.has_long_log():
-            log.write(levels[result].last_point - 1, end = ' ')
-            log.write(levels[result].last_point - levels[result].first_point, end=' ')
-            log.write(result, end = ' ')
-            log.write(levels[result].radius, end = ' ')
-            log.write(levels[result].sliding_compute_true_radius(), end = ' ')
-            log.write(levels[result].cluster_nb)
+            logstr = "\na " + str(levels[result].last_point - 1) + " " + str(levels[result].last_point - levels[result].first_point) + " c" + str(result) + \
+                " " + str(levels[result].radius) + " " + str(levels[result].sliding_compute_true_radius()) + " " + str(levels[result].cluster_nb)
+            log.write(logstr)
 
         else:
-            log.write(levels[result].last_point - 1, end = ' ')
-            log.write(levels[result].last_point - levels[result].first_point, end=' ')
-            log.write(result, end = ' ')
-            log.write(levels[result].radius, end = ' ')
-            log.write(levels[result].cluster_nb)
+            logstr = "\na " + str(levels[result].last_point - 1) + " " + str(levels[result].last_point - levels[result].first_point) + " c" + str(result) + \
+                " " + str(levels[result].radius) + " " + str(levels[result].cluster_nb)
+            log.write(logstr)
 
     return 0
 
