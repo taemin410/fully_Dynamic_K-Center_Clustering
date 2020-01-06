@@ -63,7 +63,6 @@ def fully_adv_k_center(prog_args):
                                 	prog_args["d_max"],nb_instances, array,
                                     size, prog_args["cluster_size"], helper_array)
 
-    print("clusters array: ", clusters_array)                                
     print("fully adv environment successfully intialized!")
 
     print("running fully adv k center...")
@@ -116,17 +115,17 @@ def main():
     #
     #   Split large query data points into smaller parts
     # 
-    count = 0 
-    File_object = open("dataset/smaller_queries.txt", "w")
+    # count = 0 
+    # File_object = open("dataset/smaller_queries.txt", "w")
 
-    with open('dataset/readable.txt','r') as f:
-        for line in f:
-            if count > 5000:
-                break
-            File_object.write(line)
-            count += 1
+    # with open('dataset/readable.txt','r') as f:
+    #     for line in f:
+    #         if count > 5000:
+    #             break
+    #         File_object.write(line)
+    #         count += 1
 
-    prog_args["queries_path"] = "dataset/smaller_queries.txt"
+    # prog_args["queries_path"] = "dataset/smaller_queries.txt"
 
     if readpath:
         prog_args["points_path"]= readpath

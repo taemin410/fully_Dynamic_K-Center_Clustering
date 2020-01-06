@@ -1,19 +1,19 @@
 NOT_IN_SET = -1
-
+        
 class Element_pointer:
-    def __init__(self, set_index=0, pointer=0):
+    def __init__(self, set_index=-1, pointer=-1):
         self.set_index = set_index
         self.pointer = pointer
 
 class Set_:
-    def __init__(self, max_size, range_, set_index):
+    def __init__(self, max_size, range_, set_index, elem_pointer):
         assert range_ >= max_size
         self.index = set_index
         self.card = 0
         self.max_card = max_size
         self.range = range_
-        self.elements = [None] * (max_size)  # integer array
-        self.elm_ptr = [Element_pointer(-1, -1)] * (range_) # element pointer array
+        self.elements = [None for _ in range(max_size)] # integer array
+        self.elm_ptr = elem_pointer  # element pointer array shared by all the sets
 
     def free_set(self) -> None:
         self.elements = [] 
@@ -40,7 +40,6 @@ class Set_:
         self.card += 1
 
     def remove_element_set(self, element) -> None:
-        #@TODO: verify whehter set.set_index => self.index 
         assert self.index == self.elm_ptr[element].set_index
         assert 0 < self.card
 
@@ -102,13 +101,11 @@ class Set_collection:
 '''Should Not be included in Set_ or Set_collection'''
 def initialise_set_n_common(n, max_size, range_) -> list:
     set_coll = []
-    _set = Set_(max_size, range_, 0)
-    set_coll.append(_set)
+    # set_coll.append(Set_(max_size, range_, 0))
+    elem_ptr_list = [Element_pointer(-1, -1) for _ in range(range_)]
 
-    for i in range(1, n):
-        new_set = Set_(max_size, range_, i)
-        new_set.elm_ptr = set_coll[0].elm_ptr
-        set_coll.append(new_set)
+    for i in range(0, n):
+        set_coll.append(Set_(max_size, range_, i, elem_ptr_list))
 
     return set_coll
 

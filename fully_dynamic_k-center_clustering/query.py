@@ -12,8 +12,8 @@ class query_provider:
     def __init__(self, path=None, fd=None, buffer=100, current=0, nb_query=0):
         self.path= path
         self.fd = fd
-        # self.buffer = [None]*buffer
-        # self.current = current
+        self.buffer = [None]*buffer
+        self.current = current
         self.nb_query = nb_query
 
     def initialise_query_provider(self, path) -> None:
@@ -27,7 +27,7 @@ class query_provider:
     def get_next_query_set(self, next_query, sets) -> bool:
 
         # if self.current >= self.nb_query:
-        self.current = 0
+        # self.current = 0
         
         line = self.fd.readline()
         line = line[:-1]
