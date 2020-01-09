@@ -16,7 +16,7 @@ class Set_:
         self.elm_ptr = elem_pointer  # element pointer array shared by all the sets
 
     def free_set(self) -> None:
-        self.elements = [] 
+        self.elements = []
         self.elm_ptr = []
 
     '''
@@ -36,7 +36,6 @@ class Set_:
         self.elements[self.card] = element
         self.elm_ptr[element].set_index = self.index
         self.elm_ptr[element].pointer = self.card
-
         self.card += 1
 
     def remove_element_set(self, element) -> None:

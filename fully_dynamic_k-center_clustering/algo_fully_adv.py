@@ -4,7 +4,10 @@ from query import query, query_provider
 from data_fully_adv import fully_adv_distance
 from utils import log_, shuffle_array
 from math import ceil, log
+from cluster_comparison import Cluster_comparator
+import visualization as viz
 import static_variables as sv
+
 
 class Fully_adv_cluster:
     def __init__(self, k, radius, array, nb_points, cluster_size):
@@ -126,7 +129,7 @@ def fully_adv_center_run(levels, nb_instances, queries, helper_array) -> None:
         points - array of Geo Point array
         nb_points - number of data points
         cluster_size - size of the clusters
-        helper_array - ??
+        helper_array - helper array in which update information of data points will be stored
 
     return:
         nb_instances - number of dynamic clustering environments
@@ -157,5 +160,17 @@ def fully_adv_get_index_smallest(levels, nb_instances):
 
 def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
     q = query()
+    
+    MI_vals = []
     while queries.get_next_query_set(q, levels[0].clusters):
+        cluster_before_query = levels[0].clusters.sets
         fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
+        cluster_after_query = levels[0].clusters.sets
+
+        comparison = Cluster_comparator(cluster_before_query, cluster_after_query)
+        MI_vals.append(comparison.mutual_information())
+
+    
+    viz.plot_clustering_similarity_graph(MI_vals)
+
+        

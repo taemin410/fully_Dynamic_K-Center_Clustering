@@ -1,7 +1,6 @@
 import math
 import random
 
-
 def log_ceil(n, base) -> float:
     return float(math.ceil(math.log(n) / math.log(base)))
 
@@ -44,6 +43,5 @@ class Log:
     def has_long_log(self):
         return 0 != self.long_log
 
-log_ = Log("test.log", 0)
-#from utils import log
+log_ = Log("cluster_information.log", 0)
 
