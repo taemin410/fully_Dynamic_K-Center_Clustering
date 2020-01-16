@@ -92,7 +92,18 @@ def fully_adv_write_log(levels, nb_instances, nb_points, q) -> int:
             f.write(content)
     return 0
 
-def fully_adv_apply_one_query(levels, nb_instances, q, helper_array) -> None:
+'''
+    Apply query to existing clusters.
+    
+    params:
+        levels - clustering environments
+        nb_instances - number of clustering environments
+        q - query
+        helper_array - array storing clustering information (this is used in reclustering)
+
+    return: fully_adv_write_log (denoting exit status of log), q (query information)
+'''
+def fully_adv_apply_one_query(levels, nb_instances, q, helper_array) -> tuple:
     if q.type == "ADD":
         sv.nb_points += 1
 
@@ -106,7 +117,7 @@ def fully_adv_apply_one_query(levels, nb_instances, q, helper_array) -> None:
         for i in range(nb_instances):
             levels[i].fully_adv_k_center_delete(q.data_index, helper_array)
 
-    return fully_adv_write_log(levels, nb_instances, sv.nb_points, q)
+    return fully_adv_write_log(levels, nb_instances, sv.nb_points, q), q
 
 def fully_adv_center_run(levels, nb_instances, queries, helper_array) -> None:
     q = query() #query type pointer
@@ -164,13 +175,20 @@ def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
     MI_vals = []
     while queries.get_next_query_set(q, levels[0].clusters):
         cluster_before_query = levels[0].clusters.sets
-        fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
+        exit_status, query_info = fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
         cluster_after_query = levels[0].clusters.sets
 
         comparison = Cluster_comparator(cluster_before_query, cluster_after_query)
         MI_vals.append(comparison.mutual_information())
 
+        # if exit_status == 4: print("bad level error")
+        # if query_info.type == "REMOVE": 
+        #     print("removed!")
+        #     print("MI before deletion: ", MI_vals[len(MI_vals) - 2])
+        #     print("MI after deletion: ", MI_vals[len(MI_vals) - 1])
+        #     print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+
     
-    viz.plot_clustering_similarity_graph(MI_vals)
+    viz.plot_clustering_similarity_graph(MI_vals, "Clustering Similarity by Mutual Information")
 
         

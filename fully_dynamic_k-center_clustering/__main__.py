@@ -101,7 +101,7 @@ def main():
         "d_max" : 50,
         "points_path" : "dataset/xaa.txt",
         "queries_path" : "dataset/readable.txt",
-        "cluster_size" : 50000,
+        "cluster_size" : 2500,
         "window_length" : 10
     }
 
@@ -120,7 +120,7 @@ def main():
 
     with open('dataset/readable.txt','r') as f:
         for line in f:
-            if count > 50000:
+            if count > 10000:
                 break
             File_object.write(line)
             count += 1
