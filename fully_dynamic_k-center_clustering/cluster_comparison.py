@@ -20,17 +20,14 @@ class Cluster_comparator():
             V - collection of all the clusters within clustering
     '''
     def __init__(self, U, V):
-        # self.U = U
-        # self.V = V
+        self.U = U
+        self.V = V
         self.U_length = len(U)  # number of clusters in U
         self.V_length = len(V)  # number of clusters in V
-        self.U_set_arr = self.extract_set_array_from_clusters(U)    # list of element set in U
-        self.V_set_arr = self.extract_set_array_from_clusters(V)   # list of element set in V
-        self.contigency_table = self.initialize_contigency_table()   # 2d-array in which each element denoting number of common elements. Last elements denote sum of each row / column
+        # self.U_set_arr = self.extract_set_array_from_clusters(U)    # list of element set in U
+        # self.V_set_arr = self.extract_set_array_from_clusters(V)   # list of element set in V
+        # self.contigency_table = self.initialize_contigency_table()   # 2d-array in which each element denoting number of common elements. Last elements denote sum of each row / column
 
-        self.U_elem_to_index = self.generate_elem_dict(U)                            
-        self.V_elem_to_index = self.generate_elem_dict(V)                            
-        self.generate_pairs_info()
     
 
     '''
@@ -178,8 +175,8 @@ class Cluster_comparator():
         N_00 = self.calculate_N_00()
         N_10 = self.calculate_N_10()
         N_01 = self.calculate_N_01()
-        print(N_11, N_00)
-        
+        print(N_11, N_00, N_10, N_01)
+
         divisor = ((N_00 + N_01) * (N_01 + N_11) + (N_00 + N_10) * (N_10 + N_11))
         dividend = 2 * (N_00 * N_11 - N_01 * N_10)
         
@@ -189,6 +186,14 @@ class Cluster_comparator():
             return 0 
 
         return ari
+    
+    def initialize_pairs_measure(self, a, b):
+        self.same_0 = a
+        self.diff_0 = b
+
+        self.U_elem_to_index = self.generate_elem_dict(self.U)                            
+        self.V_elem_to_index = self.generate_elem_dict(self.V)                            
+        self.generate_pairs_info()
 
     '''
         Dictionary from element to cluster indexes generator.
@@ -220,20 +225,22 @@ class Cluster_comparator():
 
     '''
     def generate_pairs_info(self) -> None:
-        self.same_0 = []
-        self.diff_0 = []
+
+        if len(self.same_0) == 0 and len(self.diff_0) == 0:
+            self.same_0 = []
+            self.diff_0 = []
+        
+            for elem_U1, cluster_index_U1 in sorted(self.U_elem_to_index.items()):
+                for elem_U2, cluster_index_U2 in sorted(self.U_elem_to_index.items()):
+                    if elem_U1 != elem_U2:
+                        pair = (elem_U1, elem_U2) 
+                        if cluster_index_U1 == cluster_index_U2:
+                            self.same_0.append(pair)
+                        else:
+                            self.diff_0.append(pair)                        
+
         self.same_1 = []
         self.diff_1 = []
-
-        for elem_U1, cluster_index_U1 in sorted(self.U_elem_to_index.items()):
-            for elem_U2, cluster_index_U2 in sorted(self.U_elem_to_index.items()):
-                if elem_U1 != elem_U2:
-                    pair = (elem_U1, elem_U2) 
-                    if cluster_index_U1 == cluster_index_U2:
-                        self.same_0.append(pair)
-                    else:
-                        self.diff_0.append(pair)                        
-
 
         for elem_V1, cluster_index_V1 in sorted(self.V_elem_to_index.items()):
             for elem_V2, cluster_index_V2 in sorted(self.V_elem_to_index.items()):
@@ -245,9 +252,19 @@ class Cluster_comparator():
                         self.diff_1.append(pair)
         
         # return same_0, diff_0, same_1, diff_1
-                    
+    """ 
+        Getter function for same_1 and diff_1 for the next query.
 
+        param:
 
+        return: 
+            same_1: list of Pairs that are in the same clusters
+            diff_1: list of Pairs that are in different clusters
+    """             
+    def get_pairs_lists(self):
+        return self.same_1, self.diff_1
+
+    
     '''
         Information theoric based measures.
         Mutual Information(MI) - most basic similarity measure of clustering.

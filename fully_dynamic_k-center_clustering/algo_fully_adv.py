@@ -174,16 +174,22 @@ def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
     
     MI_vals = []
     ARI_vals = [] 
-
+    a, b = [] ,[]
+    count= 0 
     while queries.get_next_query_set(q, levels[0].clusters):
+        count+=1
+        print(count)
         cluster_before_query = levels[0].clusters.sets
         exit_status, query_info = fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
         cluster_after_query = levels[0].clusters.sets
 
         comparison = Cluster_comparator(cluster_before_query, cluster_after_query)
-        MI_vals.append(comparison.mutual_information())
+        comparison.initialize_pairs_measure(a,b)
+
+        # MI_vals.append(comparison.mutual_information())
         ARI_vals.append(comparison.adjusted_rand_index())
 
+        a, b = comparison.get_pairs_lists()
         # if exit_status == 4: print("bad level error")
         # if query_info.type == "REMOVE": 
         #     print("removed!")
@@ -192,7 +198,7 @@ def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
         #     print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 
     
-    viz.plot_clustering_similarity_graph(MI_vals, "Clustering Similarity by Mutual Information")
+    # viz.plot_clustering_similarity_graph(MI_vals, "Clustering Similarity by Mutual Information")
     viz.plot_clustering_similarity_graph(ARI_vals, "Clustering Similarity by ARI")
 
         
