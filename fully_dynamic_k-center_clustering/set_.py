@@ -105,7 +105,6 @@ def initialise_set_n_common(n, max_size, range_) -> list:
 
     for i in range(0, n):
         set_coll.append(Set_(max_size, range_, i, elem_ptr_list))
-
     return set_coll
 
 def free_set_n_common(n_common_set, n) -> None:

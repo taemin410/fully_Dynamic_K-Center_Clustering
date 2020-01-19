@@ -104,6 +104,7 @@ def fully_adv_write_log(levels, nb_instances, nb_points, q) -> int:
     return: fully_adv_write_log (denoting exit status of log), q (query information)
 '''
 def fully_adv_apply_one_query(levels, nb_instances, q, helper_array) -> tuple:
+    print("current query index: ", q.data_index) 
     if q.type == "ADD":
         sv.nb_points += 1
 
@@ -173,13 +174,24 @@ def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
     q = query()
     
     MI_vals = []
+    joint_normalized_MI_vals = []
+
     while queries.get_next_query_set(q, levels[0].clusters):
         cluster_before_query = levels[0].clusters.sets
+        # print("query index before applying: ", q.data_index)
         exit_status, query_info = fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
         cluster_after_query = levels[0].clusters.sets
+        # print("cluster_before query: ", cluster_before_query[0].elements)
+        # print("cluster_after_query: ", cluster_after_query[0].elements)
+        
 
         comparison = Cluster_comparator(cluster_before_query, cluster_after_query)
-        MI_vals.append(comparison.mutual_information())
+        mutual_info = comparison.mutual_information()
+        # print("current normalized mutual_info: ", mutual_info / comparison.joint_entropy())
+        # print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+
+        MI_vals.append(mutual_info)
+        joint_normalized_MI_vals.append(mutual_info / max(comparison.entropy("U"), comparison.entropy("V")))
 
         # if exit_status == 4: print("bad level error")
         # if query_info.type == "REMOVE": 
@@ -189,6 +201,7 @@ def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
         #     print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 
     
-    viz.plot_clustering_similarity_graph(MI_vals, "Clustering Similarity by Mutual Information")
+    viz.plot_clustering_similarity_graph(MI_vals, "Mutual Information")
+    viz.plot_clustering_similarity_graph(joint_normalized_MI_vals, "Joint Normalized Mutual Information")
 
         

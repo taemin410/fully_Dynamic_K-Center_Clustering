@@ -19,8 +19,6 @@ class Cluster_comparator():
             V - collection of all the clusters within clustering
     '''
     def __init__(self, U, V):
-        # self.U = U
-        # self.V = V
         self.U_length = len(U)  # number of clusters in U
         self.V_length = len(V)  # number of clusters in V
         self.U_set_arr = self.extract_set_array_from_clusters(U)    # list of element set in U
@@ -32,7 +30,7 @@ class Cluster_comparator():
         Extract the elements array from clusters object structures and convert this array to array of sets.
 
         params:
-            clusters - Set_collection object
+            clusters - array of Set_ object
 
         return:
             array of sets containing all the elements within clustering
@@ -40,7 +38,11 @@ class Cluster_comparator():
     def extract_set_array_from_clusters(self, clusters) -> list:
         cluster_array = []
         for i in range(len(clusters)):
-            cluster_array.append(set(clusters[i].elements))
+            array_to_set = set(clusters[i].elements)
+            array_to_set.discard(None)
+            cluster_array.append(array_to_set)
+
+        # print("cluster array: ", cluster_array)
 
         return cluster_array
 
@@ -54,8 +56,8 @@ class Cluster_comparator():
         return: contigency_table, total - 2d array (int)
     '''
     def initialize_contigency_table(self) -> list:
-        contigency_table = [[0 for i in range(self.U_length)] for j in range(self.V_length)]
-        total = 0
+        contigency_table = [[0 for i in range(self.V_length)] for j in range(self.U_length)]
+        # total = 0
 
         # update contigency table
         for i in range(self.U_length):
@@ -64,15 +66,20 @@ class Cluster_comparator():
                 for set_element in self.U_set_arr[i]:
                     if set_element in self.V_set_arr[j]:
                         contigency_table[i][j] += 1
-                        total += 1
+                        # total += 1
                         row_sum += 1
             
             contigency_table[i].append(row_sum)
 
         # calculate sum of each column and add it as the last row of the contigency table
         col_sum_arr = [sum([row[i] for row in contigency_table]) for i in range(len(contigency_table[0]))]
-        col_sum_arr.append(total)
+        # col_sum_arr.append(total)
+
         contigency_table.append(col_sum_arr)
+        print('contingency table: ')
+        for i in contigency_table:
+            print(i)
+
 
         return contigency_table
 
@@ -135,8 +142,50 @@ class Cluster_comparator():
 
 
     '''
+    '''
+    def entropy(self, cluster = "U") -> int:
+        entropy = 0
+        contigency_N = self.contigency_table[self.U_length][self.V_length]  # total sum of number of common elements
+
+        if cluster == "U":
+            for i in range(self.U_length):
+                a_i = float(self.contigency_table[i][self.V_length])
+                if a_i != 0:
+                    entropy += (a_i / contigency_N) * log(a_i / contigency_N)
+        
+        else:   # cluster = "V"
+            for j in range(self.V_length):
+                b_j = float(self.contigency_table[self.U_length][j])
+                if b_j != 0:
+                    entropy += (b_j / contigency_N) * log(b_j / contigency_N)
+
+        return -entropy if entropy !=0 else 0.0000001
+
+
+    '''
+        Calculate the joint entropy of two clusterings via contigency table.
+
+        params:
+        
+        return:
+            joint_entropy - joint entropy of two clusterings
+    '''
+    def joint_entropy(self) -> float:
+        joint_entropy = 0
+        contigency_N = self.contigency_table[self.U_length][self.V_length]  # total sum of number of common elements
+
+        for i in range(self.U_length):
+            for j in range(self.V_length):
+                current_n = float(self.contigency_table[i][j] if self.contigency_table[i][j] !=0 else 0.0000001)
+                
+                joint_entropy += (current_n / contigency_N) * log(current_n / contigency_N)
+        
+        return -joint_entropy
+
+
+    '''
         Pair counting based measures.
-        Adjusted version of Rand Index (ARI). 
+        Adjusted version of Rand Index (ARI).
 
         ARI(U, V) = 2(N_00 * N_11 - N01 * N10) / ((N_00 + N_01) * (N_01 + N_11) + (N_00 + N_10) * (N_10 + N_11)).
         And NC2 item pairs can be classified into one of the 4 types above.
@@ -157,7 +206,7 @@ class Cluster_comparator():
         ari = 2 * (N_00 * N_11 - N_01 * N_10) / ((N_00 + N_01) * (N_01 + N_11) + (N_00 + N_10) * (N_10 + N_11))
 
         return ari
-
+    
 
 
     '''
@@ -173,12 +222,26 @@ class Cluster_comparator():
         mutual_info = 0
         contigency_N = self.contigency_table[self.U_length][self.V_length]  # total sum of number of common elements
 
-        for i in range(len(self.contigency_table)):
-            a_i = self.contigency_table[i][self.V_length]
-            for j in range(len(self.contigency_table[0])):
-                current_n = self.contigency_table[i][j]
-                b_j = self.contigency_table[self.U_length][j]
-                mutual_info += current_n / contigency_N * log((current_n / contigency_N) / ((a_i * b_j) / contigency_N ** 2))
+        for i in range(self.U_length):
+            a_i = float(self.contigency_table[i][self.V_length])
+            for j in range(self.V_length):
+                current_n = float(self.contigency_table[i][j])
+
+                if current_n != 0:
+                    b_j = float(self.contigency_table[self.U_length][j])
+                    mutual_info += (current_n / contigency_N) * log((current_n / contigency_N) / ((a_i * b_j) / contigency_N ** 2))
         
         return mutual_info
+
+    '''
+        Information theoric based measures.
+        Normalized Mutual Information - joint (NMI) - normalized version of mutual information.
+
+        params:
+
+        return:
+            normalized mutual information
+    '''
+    def joint_normalized_mutual_information(self):
+        return self.mutual_information() / self.joint_entropy()
                 
