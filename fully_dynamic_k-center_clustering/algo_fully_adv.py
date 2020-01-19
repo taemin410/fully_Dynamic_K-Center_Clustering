@@ -174,7 +174,7 @@ def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
     
     MI_vals = []
     ARI_vals = [] 
-    a, b = [] ,[]
+    a, b = set(), set() 
     count= 0 
     while queries.get_next_query_set(q, levels[0].clusters):
         count+=1

@@ -227,31 +227,36 @@ class Cluster_comparator():
     def generate_pairs_info(self) -> None:
 
         if len(self.same_0) == 0 and len(self.diff_0) == 0:
-            self.same_0 = []
-            self.diff_0 = []
+            self.same_0 = set()
+            self.diff_0 = set()
         
             for elem_U1, cluster_index_U1 in sorted(self.U_elem_to_index.items()):
                 for elem_U2, cluster_index_U2 in sorted(self.U_elem_to_index.items()):
                     if elem_U1 != elem_U2:
-                        pair = (elem_U1, elem_U2) 
-                        if cluster_index_U1 == cluster_index_U2:
-                            self.same_0.append(pair)
-                        else:
-                            self.diff_0.append(pair)                        
+                        if elem_U1 < elem_U2:
+                            pair = (elem_U1, elem_U2) 
+                            if cluster_index_U1 == cluster_index_U2:
+                                self.same_0.add(pair)
+                            else:
+                                self.diff_0.add(pair)          
+                                      
 
-        self.same_1 = []
-        self.diff_1 = []
+        self.same_1 = set()
+        self.diff_1 = set()
 
-        for elem_V1, cluster_index_V1 in sorted(self.V_elem_to_index.items()):
-            for elem_V2, cluster_index_V2 in sorted(self.V_elem_to_index.items()):
+        for elem_V1, cluster_index_V1 in (self.V_elem_to_index.items()):
+            for elem_V2, cluster_index_V2 in (self.V_elem_to_index.items()):
                 if elem_V1 != elem_V2:
-                    pair = (elem_V1, elem_V2)
-                    if cluster_index_V1 == cluster_index_V2:
-                        self.same_1.append(pair)
-                    else:
-                        self.diff_1.append(pair)
+                    if elem_V1 < elem_V2:
+                        pair = (elem_V1, elem_V2)
+                        if cluster_index_V1 == cluster_index_V2:
+                            self.same_1.add(pair)
+                        else:
+                            self.diff_1.add(pair)
         
         # return same_0, diff_0, same_1, diff_1
+
+
     """ 
         Getter function for same_1 and diff_1 for the next query.
 
