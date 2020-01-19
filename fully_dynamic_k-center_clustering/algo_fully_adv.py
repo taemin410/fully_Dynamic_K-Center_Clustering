@@ -175,6 +175,8 @@ def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
     
     MI_vals = []
     joint_normalized_MI_vals = []
+    ARI_vals = [] 
+    set_same, set_diff = set(), set() 
 
     while queries.get_next_query_set(q, levels[0].clusters):
         cluster_before_query = levels[0].clusters.sets
@@ -190,9 +192,13 @@ def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
         # print("current normalized mutual_info: ", mutual_info / comparison.joint_entropy())
         # print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 
-        MI_vals.append(mutual_info)
         joint_normalized_MI_vals.append(mutual_info / max(comparison.entropy("U"), comparison.entropy("V")))
+        comparison.initialize_pairs_measure(set_same, set_diff)
 
+        MI_vals.append(comparison.mutual_information())
+        ARI_vals.append(comparison.adjusted_rand_index())
+
+        set_same, set_diff = comparison.get_pairs_lists()
         # if exit_status == 4: print("bad level error")
         # if query_info.type == "REMOVE": 
         #     print("removed!")
@@ -201,7 +207,8 @@ def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
         #     print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 
     
-    viz.plot_clustering_similarity_graph(MI_vals, "Mutual Information")
     viz.plot_clustering_similarity_graph(joint_normalized_MI_vals, "Joint Normalized Mutual Information")
+    viz.plot_clustering_similarity_graph(MI_vals, "Clustering Similarity by Mutual Information")
+    viz.plot_clustering_similarity_graph(ARI_vals, "Clustering Similarity by ARI")
 
         
