@@ -7,5 +7,5 @@ timestamped_gps_coordinate.txt
 fully_dynamic_k-center_clustering/__pycache__
 .DS_Store
 test.txt 
-settings.json
+/.vscode
 

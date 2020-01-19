@@ -24,9 +24,9 @@ class Cluster_comparator():
         self.V = V
         self.U_length = len(U)  # number of clusters in U
         self.V_length = len(V)  # number of clusters in V
-        # self.U_set_arr = self.extract_set_array_from_clusters(U)    # list of element set in U
-        # self.V_set_arr = self.extract_set_array_from_clusters(V)   # list of element set in V
-        # self.contigency_table = self.initialize_contigency_table()   # 2d-array in which each element denoting number of common elements. Last elements denote sum of each row / column
+        self.U_set_arr = self.extract_set_array_from_clusters(U)    # list of element set in U
+        self.V_set_arr = self.extract_set_array_from_clusters(V)   # list of element set in V
+        self.contigency_table = self.initialize_contigency_table()   # 2d-array in which each element denoting number of common elements. Last elements denote sum of each row / column
 
     
 
@@ -80,6 +80,39 @@ class Cluster_comparator():
         return contigency_table
 
 
+    
+
+    '''
+        Pair counting based measures.
+        Adjusted version of Rand Index (ARI). 
+
+        ARI(U, V) = 2(N_00 * N_11 - N01 * N10) / ((N_00 + N_01) * (N_01 + N_11) + (N_00 + N_10) * (N_10 + N_11)).
+        And NC2 item pairs can be classified into one of the 4 types above.
+
+        params:
+            U - clustering containing all the clusters
+            V - clustering containing all the clusters
+
+        return:
+            ARI - Adjusted Rand Index (see above)
+    '''
+    def adjusted_rand_index(self) -> float:
+        
+        N_11 = self.calculate_N_11()
+        N_00 = self.calculate_N_00()
+        N_10 = self.calculate_N_10()
+        N_01 = self.calculate_N_01()
+
+        divisor = ((N_00 + N_01) * (N_01 + N_11) + (N_00 + N_10) * (N_10 + N_11))
+        dividend = 2 * (N_00 * N_11 - N_01 * N_10)
+        
+        if divisor != 0:
+            ari =  dividend / divisor
+        else:
+            return 0 
+
+        return ari
+    
     '''
         Calculate the number of pairs that are in the same cluster in both U and V.
 
@@ -155,41 +188,17 @@ class Cluster_comparator():
         
         return count
 
-    '''
-        Pair counting based measures.
-        Adjusted version of Rand Index (ARI). 
-
-        ARI(U, V) = 2(N_00 * N_11 - N01 * N10) / ((N_00 + N_01) * (N_01 + N_11) + (N_00 + N_10) * (N_10 + N_11)).
-        And NC2 item pairs can be classified into one of the 4 types above.
-
-        params:
-            U - clustering containing all the clusters
-            V - clustering containing all the clusters
-
-        return:
-            ARI - Adjusted Rand Index (see above)
-    '''
-    def adjusted_rand_index(self) -> float:
-        
-        N_11 = self.calculate_N_11()
-        N_00 = self.calculate_N_00()
-        N_10 = self.calculate_N_10()
-        N_01 = self.calculate_N_01()
-        print(N_11, N_00, N_10, N_01)
-
-        divisor = ((N_00 + N_01) * (N_01 + N_11) + (N_00 + N_10) * (N_10 + N_11))
-        dividend = 2 * (N_00 * N_11 - N_01 * N_10)
-        
-        if divisor != 0:
-            ari =  dividend / divisor
-        else:
-            return 0 
-
-        return ari
     
-    def initialize_pairs_measure(self, a, b):
-        self.same_0 = a
-        self.diff_0 = b
+    """
+        Initializeing pairs measure 
+
+        ! can include in the constructor later
+
+
+    """
+    def initialize_pairs_measure(self, set_same, set_diff):
+        self.same_0 = set_same
+        self.diff_0 = set_diff
 
         self.U_elem_to_index = self.generate_elem_dict(self.U)                            
         self.V_elem_to_index = self.generate_elem_dict(self.V)                            
@@ -226,6 +235,7 @@ class Cluster_comparator():
     '''
     def generate_pairs_info(self) -> None:
 
+        #check if we have a set info from the past query 
         if len(self.same_0) == 0 and len(self.diff_0) == 0:
             self.same_0 = set()
             self.diff_0 = set()
