@@ -8,4 +8,4 @@ fully_dynamic_k-center_clustering/__pycache__
 .DS_Store
 test.txt 
 /.vscode
-
+*.out
