@@ -52,6 +52,7 @@ class Set_:
 class Set_collection:
     def __init__(self, n, max_size, range_):
         self.sets = initialise_set_n_common(n, max_size, range_) # array of set
+        self.max_size = max_size
         self.nb_sets = n
 
     def free_set_collection(self) -> None:
@@ -84,10 +85,14 @@ class Set_collection:
         while set_index < self.nb_sets:
             for iter_set in range(self.sets[set_index].card):
                 array[size] = self.sets[set_index].elements[iter_set]
+                # array.append(self.sets[set_index].elements[iter_set])
+                
                 self.sets[set_index].elm_ptr[array[size]].pointer = NOT_IN_SET
                 self.sets[set_index].elm_ptr[array[size]].set_index = NOT_IN_SET
+                
                 size += 1
 
+            self.sets[set_index].elements = [None] * self.max_size
             self.sets[set_index].card = 0
             set_index += 1
 

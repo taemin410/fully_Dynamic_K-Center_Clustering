@@ -97,11 +97,11 @@ def main():
     prog_args={
         "k": 20,
         "epsilon": 0.1,
-        "d_min" : 0.1,
-        "d_max" : 100,
+        "d_min" : 1,
+        "d_max" : 80,
         "points_path" : "dataset/xaa.txt",
         "queries_path" : "dataset/readable.txt",
-        "cluster_size" : 2500,
+        "cluster_size" : 10000,
         "window_length" : 10
     }
 

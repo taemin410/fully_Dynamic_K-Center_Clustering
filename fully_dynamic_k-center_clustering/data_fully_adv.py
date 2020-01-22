@@ -4,6 +4,7 @@ from point import *
 INIT_ARRAY_SIZE = 100000
 
 def fully_adv_distance(x, y):
+    # return great_circle_distance(x, y)
 	return euclidean_distance(x, y)
 
 def fully_adv_import_points(path, window_length):

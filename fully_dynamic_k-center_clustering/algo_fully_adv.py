@@ -1,4 +1,6 @@
 import point
+import random
+import copy
 from set_ import Set_, Set_collection
 from query import query, query_provider
 from data_fully_adv import fully_adv_distance
@@ -33,20 +35,25 @@ class Fully_adv_cluster:
 
         params:
             index - data_index of next query obj (data_index denotes the random query index from query text)
+
+        return:
+            i - index of cluster that the new element is added
     '''
-    def fully_adv_k_center_add(self, index) -> None:
+    def fully_adv_k_center_add(self, index) -> int:
         for i in range(self.nb):
             tmp = fully_adv_distance(self.array[index], self.array[self.centers[i]])
             if self.radius >= tmp:
                 self.clusters.add_element_set_collection(index, i)
                 self.true_rad[i] = max(tmp, self.true_rad[i])
-                return
+                return i 
 
         self.clusters.add_element_set_collection(index, self.nb)
         if self.nb < self.k:
             self.centers[self.nb] = index
             self.true_rad[self.nb] = 0
             self.nb += 1
+        
+        return self.nb
 
     def fully_adv_k_center_delete(self, element_index, helper_array) -> None:
         size = int()
@@ -57,8 +64,10 @@ class Fully_adv_cluster:
         if cluster_index < self.k and element_index == self.centers[cluster_index]:
             self.nb = cluster_index
             size = self.clusters.remove_all_elements_after_set(cluster_index, helper_array, size)
-            shuffle_array(helper_array, size)
-            
+            # shuffle_array(helper_array, size)
+            # print("helper array: ", helper_array)
+            random.shuffle(helper_array[:size])
+
             for i in range(size):
                 self.fully_adv_k_center_add(helper_array[i])
 
@@ -69,7 +78,7 @@ class Fully_adv_cluster:
 
         return max_rad
 
-def fully_adv_write_log(levels, nb_instances, nb_points, q) -> int:
+def fully_adv_write_log(levels, nb_instances, cluster_index, nb_points, q) -> int:
     key = 'a' if q.type == "ADD" else 'd'
     if log_.has_log():
         result = fully_adv_get_index_smallest(levels, nb_instances)
@@ -80,7 +89,7 @@ def fully_adv_write_log(levels, nb_instances, nb_points, q) -> int:
 
         content = 'key: ' + str(key) + ' ' + 'data index: ' + \
             str(q.data_index) + ' ' + 'nb_points: ' + str(nb_points) + ' '\
-            'result: ' + str(result) + ' ' + 'radius: ' + str(levels[result].radius) + ' ' + 'true radius: ' + str(levels[result].fully_adv_compute_true_radius()) \
+            'result: ' + str(result) + ' ' + 'cluster_index: ' + str(cluster_index) + ' ' + 'radius: ' + str(levels[result].radius) + ' ' + 'true radius: ' + str(levels[result].fully_adv_compute_true_radius()) \
             + '\n'
 
         if log_.has_long_log():
@@ -104,13 +113,14 @@ def fully_adv_write_log(levels, nb_instances, nb_points, q) -> int:
     return: fully_adv_write_log (denoting exit status of log), q (query information)
 '''
 def fully_adv_apply_one_query(levels, nb_instances, q, helper_array) -> tuple:
-    print("current query index: ", q.data_index) 
+    print("current query index: ", q.data_index)
+    cluster_index = None
     if q.type == "ADD":
         sv.nb_points += 1
 
         # add a new data point to all clustering environments
         for i in range(nb_instances):
-            levels[i].fully_adv_k_center_add(q.data_index)
+            cluster_index = levels[i].fully_adv_k_center_add(q.data_index)
     else:
         sv.nb_points -= 1
 
@@ -118,7 +128,7 @@ def fully_adv_apply_one_query(levels, nb_instances, q, helper_array) -> tuple:
         for i in range(nb_instances):
             levels[i].fully_adv_k_center_delete(q.data_index, helper_array)
 
-    return fully_adv_write_log(levels, nb_instances, sv.nb_points, q), q
+    return fully_adv_write_log(levels, nb_instances, cluster_index, sv.nb_points, q), q
 
 def fully_adv_center_run(levels, nb_instances, queries, helper_array) -> None:
     q = query() #query type pointer
@@ -150,6 +160,7 @@ def fully_adv_center_run(levels, nb_instances, queries, helper_array) -> None:
 def fully_adv_initialise_level_array(levels, k, eps, d_min, d_max, nb_instances, points, nb_points, cluster_size, helper_array) -> tuple:
     nb_instances = tmp = (1 + ceil( log(d_max / d_min) / log(1 + eps)))
     helper_array = [None] * nb_points
+    # helper_array = []
 
     # assign new fully adv cluster to each index of array
     levels.append(Fully_adv_cluster(k, 0, points, nb_points, cluster_size))
@@ -173,31 +184,37 @@ def fully_adv_get_index_smallest(levels, nb_instances):
 def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
     q = query()
     
-    MI_vals = []
     joint_normalized_MI_vals = []
     ARI_vals = [] 
     set_same, set_diff = set(), set() 
-
-    while queries.get_next_query_set(q, levels[0].clusters):
-        cluster_before_query = levels[0].clusters.sets
+    cluster_before_query = copy.deepcopy(levels[20].clusters.sets)
+    flag = False
+    v_set= None
+    while queries.get_next_query_set(q, levels[20].clusters):
+        # cluster_before_query = levels[20].clusters.sets
         # print("query index before applying: ", q.data_index)
-        exit_status, query_info = fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
-        cluster_after_query = levels[0].clusters.sets
-        # print("cluster_before query: ", cluster_before_query[0].elements)
-        # print("cluster_after_query: ", cluster_after_query[0].elements)
-        
 
+        exit_status, query_info = fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
+        cluster_after_query = levels[20].clusters.sets
+        
         comparison = Cluster_comparator(cluster_before_query, cluster_after_query)
+        if flag:
+            comparison.set_set_arr(v_set)
+        comparison.make_contigency_table()
+
+        v_set = comparison.get_set_arr()
+        flag= True
+
         mutual_info = comparison.mutual_information()
-        # print("current normalized mutual_info: ", mutual_info / comparison.joint_entropy())
+        joint_entropy = comparison.joint_entropy()
+        nmi_output = 0 if (mutual_info == 0 or joint_entropy ==0) else mutual_info / joint_entropy
+        print("current normalized mutual_info: ", nmi_output)
         # print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 
-        joint_normalized_MI_vals.append(mutual_info / max(comparison.entropy("U"), comparison.entropy("V")))
+        joint_normalized_MI_vals.append(nmi_output)
+
         comparison.initialize_pairs_measure(set_same, set_diff)
-
-        MI_vals.append(comparison.mutual_information())
         ARI_vals.append(comparison.adjusted_rand_index())
-
         set_same, set_diff = comparison.get_pairs_lists()
         # if exit_status == 4: print("bad level error")
         # if query_info.type == "REMOVE": 
@@ -208,7 +225,6 @@ def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
 
     
     viz.plot_clustering_similarity_graph(joint_normalized_MI_vals, "Joint Normalized Mutual Information")
-    viz.plot_clustering_similarity_graph(MI_vals, "Clustering Similarity by Mutual Information")
     viz.plot_clustering_similarity_graph(ARI_vals, "Clustering Similarity by ARI")
 
         

@@ -26,9 +26,17 @@ class Cluster_comparator():
         self.V_length = len(V)  # number of clusters in V
         self.U_set_arr = self.extract_set_array_from_clusters(U)    # list of element set in U
         self.V_set_arr = self.extract_set_array_from_clusters(V)   # list of element set in V
-        self.contigency_table = self.initialize_contigency_table()   # 2d-array in which each element denoting number of common elements. Last elements denote sum of each row / column
 
+
+    def set_set_arr(self, set_arr):
+        self.U_set_arr = set_arr
+        
+    def get_set_arr(self, cluster = "V"):
+        return self.V_set_arr
     
+    def make_contigency_table(self):
+        self.contigency_table = self.initialize_contigency_table() # 2d-array in which each element denoting number of common elements. Last elements denote sum of each row / column
+
 
     '''
         Extract the elements array from clusters object structures and convert this array to array of sets.
@@ -81,9 +89,9 @@ class Cluster_comparator():
         # col_sum_arr.append(total)
 
         contigency_table.append(col_sum_arr)
-        print('contingency table: ')
-        for i in contigency_table:
-            print(i)
+        # print('contingency table: ')
+        # for i in contigency_table:
+        #     print(i)
 
 
         return contigency_table
@@ -220,7 +228,7 @@ class Cluster_comparator():
         contigency_N = self.contigency_table[self.U_length][self.V_length]  # total sum of number of common elements
 
         if cluster == "U":
-            for i in range(self.U_length):
+            for i in range(self.U_length - 1):
                 a_i = float(self.contigency_table[i][self.V_length])
                 if a_i != 0:
                     entropy += (a_i / contigency_N) * log(a_i / contigency_N)
@@ -231,7 +239,7 @@ class Cluster_comparator():
                 if b_j != 0:
                     entropy += (b_j / contigency_N) * log(b_j / contigency_N)
 
-        return -entropy if entropy !=0 else 0.0000001
+        return -entropy
 
 
     '''
@@ -248,9 +256,9 @@ class Cluster_comparator():
 
         for i in range(self.U_length):
             for j in range(self.V_length):
-                current_n = float(self.contigency_table[i][j] if self.contigency_table[i][j] !=0 else 0.0000001)
-                
-                joint_entropy += (current_n / contigency_N) * log(current_n / contigency_N)
+                current_n = float(self.contigency_table[i][j])
+                if current_n !=0:
+                    joint_entropy += (current_n / contigency_N) * log(current_n / contigency_N)
         
         return -joint_entropy
 
@@ -273,7 +281,7 @@ class Cluster_comparator():
                 if j != None:
                     # print(clusters[i].index, " : " , j)
                     elem_to_index[j] = clusters[i].index
-        
+        # print("elemto index", elem_to_index)
         return elem_to_index
     
     '''
