@@ -113,7 +113,7 @@ def fully_adv_write_log(levels, nb_instances, cluster_index, nb_points, q) -> in
     return: fully_adv_write_log (denoting exit status of log), q (query information)
 '''
 def fully_adv_apply_one_query(levels, nb_instances, q, helper_array) -> tuple:
-    print("current query index: ", q.data_index)
+    # print("current query index: ", q.data_index)
     cluster_index = None
     if q.type == "ADD":
         sv.nb_points += 1
@@ -208,23 +208,19 @@ def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
         mutual_info = comparison.mutual_information()
         joint_entropy = comparison.joint_entropy()
         nmi_output = 0 if (mutual_info == 0 or joint_entropy ==0) else mutual_info / joint_entropy
-        print("current normalized mutual_info: ", nmi_output)
-        # print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 
         joint_normalized_MI_vals.append(nmi_output)
 
         comparison.initialize_pairs_measure(set_same, set_diff)
         ARI_vals.append(comparison.adjusted_rand_index())
         set_same, set_diff = comparison.get_pairs_lists()
-        # if exit_status == 4: print("bad level error")
-        # if query_info.type == "REMOVE": 
-        #     print("removed!")
-        #     print("MI before deletion: ", MI_vals[len(MI_vals) - 2])
-        #     print("MI after deletion: ", MI_vals[len(MI_vals) - 1])
-        #     print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 
-    
+
+    # visualize similarity metrics
     viz.plot_clustering_similarity_graph(joint_normalized_MI_vals, "Joint Normalized Mutual Information")
     viz.plot_clustering_similarity_graph(ARI_vals, "Clustering Similarity by ARI")
+
+    # visualize clustering result
+    viz.plot_clustering(levels, 20)
 
         

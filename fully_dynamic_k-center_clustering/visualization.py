@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
+import pandas as pd
 import numpy as np
+import seaborn as sns
 
 '''
     Plot the similarity of the clustering graph.
@@ -26,7 +28,40 @@ def plot_clustering_similarity_graph(vals, y_label):
     Visualize the scatter plotting graph of clustering.
 
     params:
-        clustering_env - clustering environment containing all the information of the clustering.
+        levels - clustering levels
+        index - index of optimal clustering environment
 '''
-def plot_clustering(clustering_env):
-    pass 
+def plot_clustering(levels, index):
+    opt_cluster = levels[index].clusters.sets
+    opt_cluster_array = []
+    geo_dataframe = []
+
+    # remove unnecessary None type values
+    for i in range(len(opt_cluster)):
+        elm_arr = set(opt_cluster[i].elements)
+        elm_arr.discard(None)
+        opt_cluster_array.append(elm_arr)
+
+    # parse the geo point data and append it into geo point dataframe
+    for cluster_index in range(len(opt_cluster_array)):
+        for data_index in opt_cluster_array[cluster_index]:
+            current_geo_obj = levels[index].array[data_index]
+            current_lat = current_geo_obj.latitude
+            current_long = current_geo_obj.longitude
+            
+            geo_data_arr = [current_lat, current_long, cluster_index]
+            geo_dataframe.append(geo_data_arr)
+
+    
+    df = pd.DataFrame(geo_dataframe, columns = ["latitude", "longitude", "cluster_index"])
+    df.plot.scatter(x = "latitude", y = "longitude", c= "cluster_index", cmap=plt.cm.RdYlGn)
+    plt.show()
+
+
+
+    
+
+
+
+
+    
