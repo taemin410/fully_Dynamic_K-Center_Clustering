@@ -54,7 +54,7 @@ def plot_clustering(levels, index):
 
     
     df = pd.DataFrame(geo_dataframe, columns = ["latitude", "longitude", "cluster_index"])
-    df.plot.scatter(x = "latitude", y = "longitude", c= "cluster_index", cmap=plt.cm.RdYlGn)
+    df.plot.scatter(x = "latitude", y = "longitude", c= "cluster_index", cmap= plt.cm.RdYlGn)
     plt.show()
 
 

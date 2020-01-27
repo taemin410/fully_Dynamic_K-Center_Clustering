@@ -47,6 +47,7 @@ class Fully_adv_cluster:
                 self.true_rad[i] = max(tmp, self.true_rad[i])
                 return i 
 
+        # add element as a center or put it in a set of unclustered data points
         self.clusters.add_element_set_collection(index, self.nb)
         if self.nb < self.k:
             self.centers[self.nb] = index
@@ -63,13 +64,16 @@ class Fully_adv_cluster:
         # center of cluster deleted
         if cluster_index < self.k and element_index == self.centers[cluster_index]:
             self.nb = cluster_index
+            helper_array.clear()
             size = self.clusters.remove_all_elements_after_set(cluster_index, helper_array, size)
-            # shuffle_array(helper_array, size)
             # print("helper array: ", helper_array)
-            random.shuffle(helper_array[:size])
+            random.shuffle(helper_array)
 
-            for i in range(size):
-                self.fully_adv_k_center_add(helper_array[i])
+            for point in helper_array:
+                self.fully_adv_k_center_add(point)
+
+            # for i in range(size):
+            #     self.fully_adv_k_center_add(helper_array[i])
 
     def fully_adv_compute_true_radius(self) -> float:
         max_rad = 0
@@ -113,8 +117,10 @@ def fully_adv_write_log(levels, nb_instances, cluster_index, nb_points, q) -> in
     return: fully_adv_write_log (denoting exit status of log), q (query information)
 '''
 def fully_adv_apply_one_query(levels, nb_instances, q, helper_array) -> tuple:
-    # print("current query index: ", q.data_index)
+
+    # reset all the helper variables before applying query
     cluster_index = None
+
     if q.type == "ADD":
         sv.nb_points += 1
 
@@ -159,8 +165,8 @@ def fully_adv_center_run(levels, nb_instances, queries, helper_array) -> None:
 '''
 def fully_adv_initialise_level_array(levels, k, eps, d_min, d_max, nb_instances, points, nb_points, cluster_size, helper_array) -> tuple:
     nb_instances = tmp = (1 + ceil( log(d_max / d_min) / log(1 + eps)))
-    helper_array = [None] * nb_points
-    # helper_array = []
+    # helper_array = [None] * nb_points
+    helper_array = []
 
     # assign new fully adv cluster to each index of array
     levels.append(Fully_adv_cluster(k, 0, points, nb_points, cluster_size))
@@ -185,18 +191,20 @@ def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
     q = query()
     
     joint_normalized_MI_vals = []
-    ARI_vals = [] 
+    ARI_vals = []
+
     set_same, set_diff = set(), set() 
     cluster_before_query = copy.deepcopy(levels[20].clusters.sets)
     flag = False
     v_set= None
-    while queries.get_next_query_set(q, levels[20].clusters):
-        # cluster_before_query = levels[20].clusters.sets
-        # print("query index before applying: ", q.data_index)
 
+    while queries.get_next_query_set(q, levels[20].clusters):
+
+        # apply a query
         exit_status, query_info = fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
-        cluster_after_query = levels[20].clusters.sets
         
+        # (re)formulate cluster comparison envrionment 
+        cluster_after_query = levels[20].clusters.sets
         comparison = Cluster_comparator(cluster_before_query, cluster_after_query)
         if flag:
             comparison.set_set_arr(v_set)
@@ -205,12 +213,13 @@ def fully_adv_k_center_run(levels, nb_instances, queries, helper_array):
         v_set = comparison.get_set_arr()
         flag= True
 
+        # Normalized Mutual Information
         mutual_info = comparison.mutual_information()
         joint_entropy = comparison.joint_entropy()
         nmi_output = 0 if (mutual_info == 0 or joint_entropy ==0) else mutual_info / joint_entropy
-
         joint_normalized_MI_vals.append(nmi_output)
 
+        # ARI
         comparison.initialize_pairs_measure(set_same, set_diff)
         ARI_vals.append(comparison.adjusted_rand_index())
         set_same, set_diff = comparison.get_pairs_lists()
