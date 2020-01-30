@@ -24,6 +24,37 @@ def plot_clustering_similarity_graph(vals, y_label):
      
     plt.show()
 
+
+
+'''
+    Plot multiple similarity of the clustering graphs.
+
+    params:
+        data - array of tuples 
+            [(ylabel, values)]
+    return:
+'''
+def plot_multiple_clustering_similarity_graph(data):
+    x = np.arange(len(data[0][1]))
+
+    for datum in data:
+        ylabel = datum[0]
+        vals = datum[1]
+
+        plt.plot(vals, label=ylabel)
+
+
+    plt.xlabel('number of queries') 
+    plt.ylabel('clustering similarity') 
+    plt.title('Similarity b/w two clusterings')
+
+    plt.legend()
+    plt.show()
+
+
+
+
+
 '''
     Visualize the scatter plotting graph of clustering.
 

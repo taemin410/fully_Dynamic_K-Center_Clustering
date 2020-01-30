@@ -84,7 +84,6 @@ class Set_collection:
         size = 0
         while set_index < self.nb_sets:
             for iter_set in range(self.sets[set_index].card):
-                # array[size] = self.sets[set_index].elements[iter_set]
                 array.append(self.sets[set_index].elements[iter_set])
                 
                 self.sets[set_index].elm_ptr[array[size]].pointer = NOT_IN_SET
