@@ -69,9 +69,7 @@ class Fully_adv_cluster:
             size = self.clusters.remove_all_elements_after_set(cluster_index, helper_array, size)
             random.shuffle(helper_array)
             
-            print("default!!!!")
             for point in helper_array:
-                print("point: ", point)
                 self.fully_adv_k_center_add(point)
 
     def fully_adv_compute_true_radius(self) -> float:
@@ -84,7 +82,7 @@ class Fully_adv_cluster:
 
 class Fully_adv_cluster_nearest_neighbor(Fully_adv_cluster):
     def __init__(self, k, radius, array, nb_points, cluster_size, nearest_neighbor_dict):
-        Fully_adv_cluster.__init__(self, k, radius, array, nb_points, cluster_size)
+        super().__init__(k, radius, array, nb_points, cluster_size)
         self.nearest_neighbor_dict = nearest_neighbor_dict # key: index of center point, val: priority queue (nearest neighbor will be on top)
 
     def fully_adv_k_center_add(self, index) -> int:
@@ -94,11 +92,7 @@ class Fully_adv_cluster_nearest_neighbor(Fully_adv_cluster):
                 self.clusters.add_element_set_collection(index, i)
                 self.true_rad[i] = max(tmp, self.true_rad[i])
                 current_element_heap = self.nearest_neighbor_dict.get(i)
-                # print('index: ', i)
-                # print("current element heap: ", current_element_heap)
-                # print("dict in addition: ", self.nearest_neighbor_dict)
                 heapq.heappush(current_element_heap, (tmp, index))
-                # print("get: ", self.nearest_neighbor_dict.get(i))
                 return i 
 
         # add element as a center or put it in a set of unclustered data points
@@ -123,28 +117,36 @@ class Fully_adv_cluster_nearest_neighbor(Fully_adv_cluster):
 
                 # get nearest neighbor of deleted center as new candidate center of cluster
                 # the cluster with higher index will take the same center in previous clustering
+                print("current index: ", element_index)
+                print(heapq.heappop(self.nearest_neighbor_dict.get(element_index)))
+                print("dict passed")
+                
                 candidate_index =  heapq.heappop(self.nearest_neighbor_dict.get(element_index))[1]
                 new_center_candidates.add(candidate_index)
-                while cluster_index + 1 < self.k + 1:
-                    new_center_candidates.add(self.centers[cluster_index])
-                    cluster_index += 1
+
+                tmp_index = cluster_index
+                while tmp_index + 1 < self.k + 1:
+                    new_center_candidates.add(self.centers[tmp_index])
+                    tmp_index += 1
                 
                 helper_array.clear()
                 size = self.clusters.remove_all_elements_after_set(cluster_index, helper_array, size)
                 random.shuffle(helper_array)
 
-                # add new centers to clustering first
+                # add candidate points as new centers of the clusters
                 for new_center in new_center_candidates:
-                    print("new center: ", new_center)
-                    self.fully_adv_k_center_add(new_center)
+                    self.clusters.add_element_set_collection(new_center, self.nb)
+                    if self.nb < self.k:
+                        self.centers[self.nb] = new_center
+                        self.true_rad[self.nb] = 0
+                        self.nb += 1
+                        self.nearest_neighbor_dict[new_center] = []
 
+                # add non-candidate data points
                 for point in helper_array:
                     if point not in new_center_candidates:
+                        # print("point to be added: ", point)
                         self.fully_adv_k_center_add(point)
-                    else:
-                        print("In SET!!!!!!!!!!!!!!")
-
-
 
 
 def fully_adv_write_log(levels, nb_instances, cluster_index, nb_points, q) -> int:
@@ -329,7 +331,7 @@ def fully_adv_k_center_run(levels, nn_levels, nb_instances, queries, helper_arra
     print("average of NMI: ", sum(joint_normalized_MI_vals) / len(joint_normalized_MI_vals))
     print("average of NN NMI: ", sum(nn_joint_normalized_MI_vals) / len(nn_joint_normalized_MI_vals))
 
-    # viz.plot_clustering_similarity_graph(ARI_vals, "Clustering Similarity by ARI")
+    viz.plot_clustering_similarity_graph(ARI_vals, "Clustering Similarity by ARI")
     data = [("Clustering Similarity by ARI", ARI_vals),
             ("ARI - Nearest Neighbor", nn_ARI_vals)]
     viz.plot_multiple_clustering_similarity_graph(data)
