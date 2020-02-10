@@ -91,8 +91,12 @@ class Fully_adv_cluster_nearest_neighbor(Fully_adv_cluster):
             if self.radius >= tmp:
                 self.clusters.add_element_set_collection(index, i)
                 self.true_rad[i] = max(tmp, self.true_rad[i])
-                current_element_heap = self.nearest_neighbor_dict.get(i)
-                heapq.heappush(current_element_heap, (tmp, index))
+
+                if i < self.k - 1:
+                    # print("index: ", i)
+                    current_element_heap = self.nearest_neighbor_dict.get(self.centers[i])
+                    heapq.heappush(current_element_heap, (tmp, index))
+                    # print("dict: ", self.nearest_neighbor_dict)
                 return i 
 
         # add element as a center or put it in a set of unclustered data points
@@ -117,12 +121,18 @@ class Fully_adv_cluster_nearest_neighbor(Fully_adv_cluster):
 
                 # get nearest neighbor of deleted center as new candidate center of cluster
                 # the cluster with higher index will take the same center in previous clustering
-                print("current index: ", element_index)
-                print(heapq.heappop(self.nearest_neighbor_dict.get(element_index)))
-                print("dict passed")
-                
+                # print("centers:")
+                # for i in range(len(self.centers)):
+                #     print(self.centers[i])
+
+                # print("current index: ", element_index)
+                # print("dict: ", self.nearest_neighbor_dict)
+                # print(heapq.heappop(self.nearest_neighbor_dict.get(element_index)))
+                # print("dict passed")
+
                 candidate_index =  heapq.heappop(self.nearest_neighbor_dict.get(element_index))[1]
                 new_center_candidates.add(candidate_index)
+                # print("new candidates: ", new_center_candidates)
 
                 tmp_index = cluster_index
                 while tmp_index + 1 < self.k + 1:
@@ -194,6 +204,9 @@ def fully_adv_apply_one_query(levels, nb_instances, q, helper_array) -> tuple:
         # add a new data point to all clustering environments
         for i in range(nb_instances):
             cluster_index = levels[i].fully_adv_k_center_add(q.data_index)
+            if i ==0:
+                print("In first environment!")
+                print(levels[i].centers)
     else:
         sv.nb_points -= 1
 
@@ -243,10 +256,10 @@ def fully_adv_initialise_level_array(levels, k, eps, d_min, d_max, nb_instances,
             d_min = (1 + eps) * d_min
     
     elif cluster_type == "nn":  # nearest neighbor
-        nearest_neighbor_dict = {}
-        levels.append(Fully_adv_cluster_nearest_neighbor(k, 0, points, nb_points, cluster_size, nearest_neighbor_dict))
+        # nearest_neighbor_dict = {}
+        levels.append(Fully_adv_cluster_nearest_neighbor(k, 0, points, nb_points, cluster_size, {}))
         for _ in range(1, tmp):
-            levels.append(Fully_adv_cluster_nearest_neighbor(k, d_min, points, nb_points, cluster_size, nearest_neighbor_dict))
+            levels.append(Fully_adv_cluster_nearest_neighbor(k, d_min, points, nb_points, cluster_size, {}))
             d_min = (1 + eps) * d_min
 
     return nb_instances, helper_array
