@@ -127,20 +127,9 @@ class Fully_adv_cluster_nearest_neighbor(Fully_adv_cluster):
                         new_center_candidates.add(cand_center)
                     tmp_index += 1
 
-                    # print("tmp_index: ", tmp_index, "self.centers[]" , self.centers[tmp_index], "candidate:", cand_center)
-                    
-                    # print(new_center_candidates)
-
                 # uncluster all the data points in the current cluster and clusters with higher index than the cluster whose center has been deleted
                 helper_array.clear()
-                # print("Removing... ! " , element_index)
-                # for i in self.clusters.sets:
-                #     print(self.centers[i.index] ,"Before ", set(i.elements))
                 size = self.clusters.remove_all_elements_after_set(cluster_index, helper_array, size)
-                # print(set(helper_array))
-                # for i in self.clusters.sets:
-                #     print(self.centers[i.index] , "after removal", set(i.elements))
-
                 random.shuffle(helper_array)
 
                 # select the nearest neighbor of the deleted point as a new center of cluster
