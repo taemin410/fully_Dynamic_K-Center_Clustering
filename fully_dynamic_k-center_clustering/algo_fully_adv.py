@@ -121,15 +121,26 @@ class Fully_adv_cluster_nearest_neighbor(Fully_adv_cluster):
 
                 # select previous centers of the clusters, with higher index than the cluster whose center has been deleted, as new centers of the clusters
                 tmp_index = cluster_index
-                while tmp_index < self.k :
+                while tmp_index+1 < self.k :
                     cand_center = self.centers[tmp_index+1]
                     if cand_center:
                         new_center_candidates.add(cand_center)
                     tmp_index += 1
-                
+
+                    # print("tmp_index: ", tmp_index, "self.centers[]" , self.centers[tmp_index], "candidate:", cand_center)
+                    
+                    # print(new_center_candidates)
+
                 # uncluster all the data points in the current cluster and clusters with higher index than the cluster whose center has been deleted
                 helper_array.clear()
+                # print("Removing... ! " , element_index)
+                # for i in self.clusters.sets:
+                #     print(self.centers[i.index] ,"Before ", set(i.elements))
                 size = self.clusters.remove_all_elements_after_set(cluster_index, helper_array, size)
+                # print(set(helper_array))
+                # for i in self.clusters.sets:
+                #     print(self.centers[i.index] , "after removal", set(i.elements))
+
                 random.shuffle(helper_array)
 
                 # select the nearest neighbor of the deleted point as a new center of cluster
@@ -137,6 +148,10 @@ class Fully_adv_cluster_nearest_neighbor(Fully_adv_cluster):
                 if len(candidate_heap) > 0 :
                     candidate_index =  heapq.heappop(candidate_heap)[1]
                     new_center_candidates.add(candidate_index)
+
+                # Erase self.centers from self.nb to self.k -> to None 
+                for i in range(self.nb, self.k):
+                    self.centers[i]=None 
 
                 # add candidate points as new centers of the clusters
                 for new_center in new_center_candidates:
