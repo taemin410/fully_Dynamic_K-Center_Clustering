@@ -119,29 +119,28 @@ class Fully_adv_cluster_nearest_neighbor(Fully_adv_cluster):
                 self.nb = cluster_index
                 new_center_candidates = set()
 
-                # get nearest neighbor of deleted center as new candidate center of cluster
-                # the cluster with higher index will take the same center in previous clustering
-                # print("centers:")
-                # for i in range(len(self.centers)):
-                #     print(self.centers[i])
-
-                # print("current index: ", element_index)
-                # print("dict: ", self.nearest_neighbor_dict)
-                # print(heapq.heappop(self.nearest_neighbor_dict.get(element_index)))
-                # print("dict passed")
-
-                candidate_index =  heapq.heappop(self.nearest_neighbor_dict.get(element_index))[1]
-                new_center_candidates.add(candidate_index)
-                # print("new candidates: ", new_center_candidates)
-
+                # select previous centers of the clusters, with higher index than the cluster whose center has been deleted, as new centers of the clusters
                 tmp_index = cluster_index
-                while tmp_index + 1 < self.k + 1:
-                    new_center_candidates.add(self.centers[tmp_index])
+                while tmp_index+1 < self.k :
+                    cand_center = self.centers[tmp_index+1]
+                    if cand_center:
+                        new_center_candidates.add(cand_center)
                     tmp_index += 1
-                
+
+                # uncluster all the data points in the current cluster and clusters with higher index than the cluster whose center has been deleted
                 helper_array.clear()
                 size = self.clusters.remove_all_elements_after_set(cluster_index, helper_array, size)
                 random.shuffle(helper_array)
+
+                # select the nearest neighbor of the deleted point as a new center of cluster
+                candidate_heap = self.nearest_neighbor_dict.pop(element_index)
+                if len(candidate_heap) > 0 :
+                    candidate_index =  heapq.heappop(candidate_heap)[1]
+                    new_center_candidates.add(candidate_index)
+
+                # Erase self.centers from self.nb to self.k -> to None 
+                for i in range(self.nb, self.k):
+                    self.centers[i]=None 
 
                 # add candidate points as new centers of the clusters
                 for new_center in new_center_candidates:
@@ -152,11 +151,12 @@ class Fully_adv_cluster_nearest_neighbor(Fully_adv_cluster):
                         self.nb += 1
                         self.nearest_neighbor_dict[new_center] = []
 
+                # finally add remaining datapoints
                 # add non-candidate data points
                 for point in helper_array:
                     if point not in new_center_candidates:
-                        # print("point to be added: ", point)
                         self.fully_adv_k_center_add(point)
+
 
 
 def fully_adv_write_log(levels, nb_instances, cluster_index, nb_points, q) -> int:
@@ -204,9 +204,7 @@ def fully_adv_apply_one_query(levels, nb_instances, q, helper_array) -> tuple:
         # add a new data point to all clustering environments
         for i in range(nb_instances):
             cluster_index = levels[i].fully_adv_k_center_add(q.data_index)
-            if i ==0:
-                print("In first environment!")
-                print(levels[i].centers)
+
     else:
         sv.nb_points -= 1
 
@@ -298,8 +296,8 @@ def fully_adv_k_center_run(levels, nn_levels, nb_instances, queries, helper_arra
         nn_exit_status, nn_query_info = fully_adv_apply_one_query(nn_levels, nb_instances, q, nn_helper_array)
         
         # (re)formulate cluster comparison envrionment 
-        cluster_after_query = levels[20].clusters.sets
-        nn_cluster_after_query = nn_levels[20].clusters.sets
+        cluster_after_query = levels[21].clusters.sets
+        nn_cluster_after_query = nn_levels[21].clusters.sets
         comparison = Cluster_comparator(cluster_before_query, cluster_after_query)
         nn_comparison = Cluster_comparator(nn_cluster_before_query, nn_cluster_after_query)
         if flag:
