@@ -22,8 +22,8 @@ class Cluster_comparator():
     def __init__(self, U, V):
         self.U = U
         self.V = V
-        self.U_length = len(U)  # number of clusters in U
-        self.V_length = len(V)  # number of clusters in V
+        self.U_length = len(U) -1  # number of clusters in U
+        self.V_length = len(V) -1 # number of clusters in V
         self.U_set_arr = self.extract_set_array_from_clusters(U)    # list of element set in U
         self.V_set_arr = self.extract_set_array_from_clusters(V)   # list of element set in V
 

@@ -69,7 +69,7 @@ def fully_adv_k_center(prog_args):
     nb_instances, nn_helper_array = fully_adv_initialise_level_array(nn_clusters_array, prog_args["k"],
                                     prog_args["epsilon"], prog_args["d_min"],
                                 	prog_args["d_max"],nb_instances, array,
-                                    size, prog_args["cluster_size"], nn_helper_array, cluster_type="nn")
+                                    size, prog_args["cluster_size"], nn_helper_array, cluster_type="cache")
 
     print("fully adv environment successfully intialized!")
 

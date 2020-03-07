@@ -10,6 +10,7 @@ from math import ceil, log
 from cluster_comparison import Cluster_comparator
 import visualization as viz
 import static_variables as sv
+# from numba import jit, cuda 
 
 
 class Fully_adv_cluster:
@@ -158,6 +159,92 @@ class Fully_adv_cluster_nearest_neighbor(Fully_adv_cluster):
                         self.fully_adv_k_center_add(point)
 
 
+class Fully_adv_cluster_cache(Fully_adv_cluster):
+    def __init__(self, k, radius, array, nb_points, cluster_size):
+        super().__init__(k, radius, array, nb_points, cluster_size)
+        self.center_index_map = {}    # key: index of a center point, val: index of cluster
+
+    def fully_adv_k_center_add(self, index) -> int:
+        for i in range(self.nb):
+            tmp = fully_adv_distance(self.array[index], self.array[self.centers[i]])
+            if self.radius >= tmp:
+                self.clusters.add_element_set_collection(index, i)
+                self.true_rad[i] = max(tmp, self.true_rad[i])
+                return i 
+
+        # add element as a center or put it in a set of unclustered data points
+        self.fully_adv_k_center_add_unclusterd_element(index)
+        
+        return self.nb
+
+    def fully_adv_k_center_add_unclusterd_element(self, index) -> None:
+        self.clusters.add_element_set_collection(index, self.nb)
+        if self.nb < self.k:
+            self.centers[self.nb] = index
+            self.center_index_map[index] = self.nb
+            self.true_rad[self.nb] = 0
+            self.nb += 1
+
+    def fully_adv_k_center_cache_recluster(self, cluster_index, cache, helper_array) -> None:
+        if len(helper_array) == 0:
+            return
+
+        # randomly pick one data point as a new center
+        new_centers = set()
+        first_elm = helper_array.pop()
+
+        self.fully_adv_k_center_add_unclusterd_element(first_elm)
+        new_centers.add(first_elm)
+
+        # loop through unclustered data points and select new candidates for centers
+        num_new_center = self.k - cluster_index
+
+        for center_candidate in helper_array.copy():
+            if len(new_centers) < num_new_center:
+
+                candidate_flag = True
+
+                for c in new_centers:
+                    if fully_adv_distance(self.array[center_candidate], self.array[c]) <= self.radius:
+                        candidate_flag = False
+
+                if candidate_flag:
+                    self.fully_adv_k_center_add_unclusterd_element(center_candidate)
+                    new_centers.add(center_candidate)
+                    helper_array.remove(center_candidate)
+
+            else:
+                break
+        
+        # add elements in unclustered set to new clusters so that each element belong to the cluster where element that was in same cluster is a current center
+        for x in helper_array.copy():
+            for c in new_centers:
+                if cache[x] == cache[c] and self.radius >= fully_adv_distance(self.array[x], self.array[c]):
+                    self.clusters.add_element_set_collection(x, self.center_index_map[c])
+                    helper_array.remove(x)
+                    break
+
+        # add still unclustered elements to cluster
+        for unclusterd_x in helper_array:
+            self.fully_adv_k_center_add(unclusterd_x)
+
+
+    def fully_adv_k_center_delete(self, element_index, helper_array) -> None:
+        size = int()
+        cluster_index = self.clusters.get_set_index(element_index)
+        self.clusters.remove_element_set_collection(element_index)
+
+        # center of cluster deleted
+        if cluster_index < self.k and element_index == self.centers[cluster_index]:
+            self.nb = cluster_index
+            helper_array.clear()
+
+            # uncluster data points
+            size, cache = self.clusters.cache_and_remove_all_elements(cluster_index, helper_array, size)
+            random.shuffle(helper_array)
+
+            #@TODO: change helper array to set 
+            self.fully_adv_k_center_cache_recluster(cluster_index, cache, set(helper_array))
 
 def fully_adv_write_log(levels, nb_instances, cluster_index, nb_points, q) -> int:
     key = 'a' if q.type == "ADD" else 'd'
@@ -260,6 +347,12 @@ def fully_adv_initialise_level_array(levels, k, eps, d_min, d_max, nb_instances,
             levels.append(Fully_adv_cluster_nearest_neighbor(k, d_min, points, nb_points, cluster_size, {}))
             d_min = (1 + eps) * d_min
 
+    elif cluster_type == "cache":  # cache
+        levels.append(Fully_adv_cluster_cache(k, 0, points, nb_points, cluster_size))
+        for _ in range(1, tmp):
+            levels.append(Fully_adv_cluster_cache(k, d_min, points, nb_points, cluster_size))
+            d_min = (1 + eps) * d_min
+
     return nb_instances, helper_array
 
 def fully_adv_delete_level_array(levels, helper_array):
@@ -283,21 +376,21 @@ def fully_adv_k_center_run(levels, nn_levels, nb_instances, queries, helper_arra
 
     set_same, set_diff = set(), set()
     nn_set_same, nn_set_diff = set(), set()
-    cluster_before_query = copy.deepcopy(levels[21].clusters.sets)
-    nn_cluster_before_query = copy.deepcopy(nn_levels[21].clusters.sets)
+    cluster_before_query = copy.deepcopy(levels[24].clusters.sets)
+    nn_cluster_before_query = copy.deepcopy(nn_levels[24].clusters.sets)
     flag = False
     v_set= None
     nn_v_set = None
 
-    while queries.get_next_query_set(q, levels[21].clusters) :
+    while queries.get_next_query_set(q, levels[24].clusters) :
 
         # apply a query
         exit_status, query_info = fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
         nn_exit_status, nn_query_info = fully_adv_apply_one_query(nn_levels, nb_instances, q, nn_helper_array)
         
         # (re)formulate cluster comparison envrionment 
-        cluster_after_query = levels[21].clusters.sets
-        nn_cluster_after_query = nn_levels[21].clusters.sets
+        cluster_after_query = levels[24].clusters.sets
+        nn_cluster_after_query = nn_levels[24].clusters.sets
         comparison = Cluster_comparator(cluster_before_query, cluster_after_query)
         nn_comparison = Cluster_comparator(nn_cluster_before_query, nn_cluster_after_query)
         if flag:
