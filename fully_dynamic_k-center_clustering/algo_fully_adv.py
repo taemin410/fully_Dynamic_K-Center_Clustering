@@ -58,7 +58,7 @@ class Fully_adv_cluster:
         
         return self.nb
 
-    def fully_adv_k_center_delete(self, element_index, helper_array) -> None:
+    def fully_adv_k_center_delete(self, element_index, helper_array) -> bool :
         size = int()
         cluster_index = self.clusters.get_set_index(element_index)
         self.clusters.remove_element_set_collection(element_index)
@@ -72,6 +72,10 @@ class Fully_adv_cluster:
             
             for point in helper_array:
                 self.fully_adv_k_center_add(point)
+
+            return True 
+        #if in case of simple deletion
+        return False
 
     def fully_adv_compute_true_radius(self) -> float:
         max_rad = 0
@@ -110,7 +114,7 @@ class Fully_adv_cluster_nearest_neighbor(Fully_adv_cluster):
         
         return self.nb
 
-    def fully_adv_k_center_delete(self, element_index, helper_array) -> None:
+    def fully_adv_k_center_delete(self, element_index, helper_array) -> bool :
             size = int()
             cluster_index = self.clusters.get_set_index(element_index)
             self.clusters.remove_element_set_collection(element_index)
@@ -158,6 +162,9 @@ class Fully_adv_cluster_nearest_neighbor(Fully_adv_cluster):
                     if point not in new_center_candidates:
                         self.fully_adv_k_center_add(point)
 
+                return True
+            #if in case of simple deletion
+            return False 
 
 class Fully_adv_cluster_cache(Fully_adv_cluster):
     def __init__(self, k, radius, array, nb_points, cluster_size):
@@ -245,6 +252,11 @@ class Fully_adv_cluster_cache(Fully_adv_cluster):
 
             #@TODO: change helper array to set 
             self.fully_adv_k_center_cache_recluster(cluster_index, cache, set(helper_array))
+            
+            return True
+        
+        #if in case of simple deletion
+        return False 
 
 def fully_adv_write_log(levels, nb_instances, cluster_index, nb_points, q) -> int:
     key = 'a' if q.type == "ADD" else 'd'
@@ -295,11 +307,15 @@ def fully_adv_apply_one_query(levels, nb_instances, q, helper_array) -> tuple:
     else:
         sv.nb_points -= 1
 
+        reclustered_levels_list=[]
         # delete a data point from all clustering environments
         for i in range(nb_instances):
-            levels[i].fully_adv_k_center_delete(q.data_index, helper_array)
+            reclustered_levels_list.append(levels[i].fully_adv_k_center_delete(q.data_index, helper_array))
+        
+        return fully_adv_write_log(levels, nb_instances, cluster_index, sv.nb_points, q), q , reclustered_levels_list
 
-    return fully_adv_write_log(levels, nb_instances, cluster_index, sv.nb_points, q), q
+
+    return fully_adv_write_log(levels, nb_instances, cluster_index, sv.nb_points, q), q , []
 
 def fully_adv_center_run(levels, nb_instances, queries, helper_array) -> None:
     q = query() #query type pointer
@@ -374,8 +390,8 @@ def fully_adv_k_center_run(levels, nn_levels, nb_instances, queries, helper_arra
     ARI_vals = []
     nn_ARI_vals = []
 
-    set_same, set_diff = set(), set()
-    nn_set_same, nn_set_diff = set(), set()
+    prev_set_same, prev_set_diff = set(), set()
+    prev_nn_set_same, prev_nn_set_diff = set(), set()
     cluster_before_query = copy.deepcopy(levels[24].clusters.sets)
     nn_cluster_before_query = copy.deepcopy(nn_levels[24].clusters.sets)
     flag = False
@@ -385,45 +401,56 @@ def fully_adv_k_center_run(levels, nn_levels, nb_instances, queries, helper_arra
     while queries.get_next_query_set(q, levels[24].clusters) :
 
         # apply a query
-        exit_status, query_info = fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
-        nn_exit_status, nn_query_info = fully_adv_apply_one_query(nn_levels, nb_instances, q, nn_helper_array)
+        exit_status, query_info, has_reclutered_list = fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
+        nn_exit_status, nn_query_info, nn_has_reclutered_list = fully_adv_apply_one_query(nn_levels, nb_instances, q, nn_helper_array)
         
+        reclustering_flag  = has_reclutered_list[24] if has_reclutered_list else False
+        nn_reclustering_flag = nn_has_reclutered_list[24] if nn_has_reclutered_list else False
+
         # (re)formulate cluster comparison envrionment 
         cluster_after_query = levels[24].clusters.sets
         nn_cluster_after_query = nn_levels[24].clusters.sets
+
         comparison = Cluster_comparator(cluster_before_query, cluster_after_query)
         nn_comparison = Cluster_comparator(nn_cluster_before_query, nn_cluster_after_query)
+        
         if flag:
             comparison.set_set_arr(v_set)
             nn_comparison.set_set_arr(nn_v_set)
-        comparison.make_contigency_table()
-        nn_comparison.make_contigency_table()
+        
+        if reclustering_flag:
+            comparison.make_contigency_table()
+            
+            # Normalized Mutual Information
+            mutual_info = comparison.mutual_information()
+            joint_entropy = comparison.joint_entropy()
+
+            nmi_output = 0 if (mutual_info == 0 or joint_entropy ==0) else mutual_info / joint_entropy
+            joint_normalized_MI_vals.append(nmi_output)
+            
+            # ARI
+            comparison.initialize_pairs_measure(prev_set_same, prev_set_diff)
+            ARI_vals.append(comparison.adjusted_rand_index())
+            prev_set_same, prev_set_diff = comparison.get_pairs_lists()
+
+        if nn_reclustering_flag:
+            nn_comparison.make_contigency_table()
+
+            # Normalized Mutual Information
+            nn_mutual_info = nn_comparison.mutual_information()
+            nn_joint_entropy = nn_comparison.joint_entropy()
+
+            nn_nmi_output = 0 if (nn_mutual_info == 0 or nn_joint_entropy ==0) else nn_mutual_info / nn_joint_entropy
+            nn_joint_normalized_MI_vals.append(nn_nmi_output)
+
+            nn_comparison.initialize_pairs_measure(prev_nn_set_same, prev_nn_set_diff)
+            nn_ARI_vals.append(nn_comparison.adjusted_rand_index())
+            prev_nn_set_same, prev_nn_set_diff = nn_comparison.get_pairs_lists()
+
 
         v_set = comparison.get_set_arr()
         nn_v_set = nn_comparison.get_set_arr()
         flag= True
-
-        # Normalized Mutual Information
-        mutual_info = comparison.mutual_information()
-        nn_mutual_info = nn_comparison.mutual_information()
-
-        joint_entropy = comparison.joint_entropy()
-        nn_joint_entropy = nn_comparison.joint_entropy()
-
-        nmi_output = 0 if (mutual_info == 0 or joint_entropy ==0) else mutual_info / joint_entropy
-        nn_nmi_output = 0 if (nn_mutual_info == 0 or nn_joint_entropy ==0) else nn_mutual_info / nn_joint_entropy
-
-        joint_normalized_MI_vals.append(nmi_output)
-        nn_joint_normalized_MI_vals.append(nn_nmi_output)
-
-        # ARI
-        comparison.initialize_pairs_measure(set_same, set_diff)
-        ARI_vals.append(comparison.adjusted_rand_index())
-        set_same, set_diff = comparison.get_pairs_lists()
-
-        nn_comparison.initialize_pairs_measure(nn_set_same, nn_set_diff)
-        nn_ARI_vals.append(nn_comparison.adjusted_rand_index())
-        nn_set_same, nn_set_diff = nn_comparison.get_pairs_lists()
 
     # visualize similarity metrics
     viz.plot_clustering_similarity_graph(joint_normalized_MI_vals, "Joint Normalized Mutual Information")
