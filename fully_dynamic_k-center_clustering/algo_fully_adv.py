@@ -382,41 +382,45 @@ def fully_adv_get_index_smallest(levels, nb_instances):
 
     return nb_instances
 
-def fully_adv_k_center_run(levels, nn_levels, nb_instances, queries, helper_array, nn_helper_array):
+def fully_adv_k_center_run(levels, cache_levels, nb_instances, queries, helper_array, cache_helper_array):
     q = query()
-    
+    q_num = 0
+
     joint_normalized_MI_vals = []
-    nn_joint_normalized_MI_vals = []
+    cache_joint_normalized_MI_vals = []
     ARI_vals = []
-    nn_ARI_vals = []
+    cache_ARI_vals = []
 
     prev_set_same, prev_set_diff = set(), set()
-    prev_nn_set_same, prev_nn_set_diff = set(), set()
+    prev_cache_set_same, prev_cache_set_diff = set(), set()
     cluster_before_query = copy.deepcopy(levels[24].clusters.sets)
-    nn_cluster_before_query = copy.deepcopy(nn_levels[24].clusters.sets)
+    cache_cluster_before_query = copy.deepcopy(cache_levels[24].clusters.sets)
     flag = False
     v_set= None
-    nn_v_set = None
+    cache_v_set = None
 
     while queries.get_next_query_set(q, levels[24].clusters) :
+        #Count Query number
+        q_num+=1
 
         # apply a query
         exit_status, query_info, has_reclutered_list = fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
-        nn_exit_status, nn_query_info, nn_has_reclutered_list = fully_adv_apply_one_query(nn_levels, nb_instances, q, nn_helper_array)
+        cache_exit_status, cache_query_info, cache_has_reclutered_list = fully_adv_apply_one_query(cache_levels, nb_instances, q, cache_helper_array)
         
+        # Flag is True when has_reclusterd_list[] exists and is true 
         reclustering_flag  = has_reclutered_list[24] if has_reclutered_list else False
-        nn_reclustering_flag = nn_has_reclutered_list[24] if nn_has_reclutered_list else False
+        cache_reclustering_flag = cache_has_reclutered_list[24] if cache_has_reclutered_list else False
 
         # (re)formulate cluster comparison envrionment 
         cluster_after_query = levels[24].clusters.sets
-        nn_cluster_after_query = nn_levels[24].clusters.sets
+        cache_cluster_after_query = cache_levels[24].clusters.sets
 
         comparison = Cluster_comparator(cluster_before_query, cluster_after_query)
-        nn_comparison = Cluster_comparator(nn_cluster_before_query, nn_cluster_after_query)
+        cache_comparison = Cluster_comparator(cache_cluster_before_query, cache_cluster_after_query)
         
         if flag:
             comparison.set_set_arr(v_set)
-            nn_comparison.set_set_arr(nn_v_set)
+            cache_comparison.set_set_arr(cache_v_set)
         
         if reclustering_flag:
             comparison.make_contigency_table()
@@ -433,40 +437,46 @@ def fully_adv_k_center_run(levels, nn_levels, nb_instances, queries, helper_arra
             ARI_vals.append(comparison.adjusted_rand_index())
             prev_set_same, prev_set_diff = comparison.get_pairs_lists()
 
-        if nn_reclustering_flag:
-            nn_comparison.make_contigency_table()
+        if cache_reclustering_flag:
+            cache_comparison.make_contigency_table()
 
             # Normalized Mutual Information
-            nn_mutual_info = nn_comparison.mutual_information()
-            nn_joint_entropy = nn_comparison.joint_entropy()
+            cache_mutual_info = cache_comparison.mutual_information()
+            cache_joint_entropy = cache_comparison.joint_entropy()
 
-            nn_nmi_output = 0 if (nn_mutual_info == 0 or nn_joint_entropy ==0) else nn_mutual_info / nn_joint_entropy
-            nn_joint_normalized_MI_vals.append(nn_nmi_output)
-
-            nn_comparison.initialize_pairs_measure(prev_nn_set_same, prev_nn_set_diff)
-            nn_ARI_vals.append(nn_comparison.adjusted_rand_index())
-            prev_nn_set_same, prev_nn_set_diff = nn_comparison.get_pairs_lists()
+            cache_nmi_output = 0 if (cache_mutual_info == 0 or cache_joint_entropy ==0) else cache_mutual_info / cache_joint_entropy
+            cache_joint_normalized_MI_vals.append(cache_nmi_output)
+            
+            # ARI
+            cache_comparison.initialize_pairs_measure(prev_cache_set_same, prev_cache_set_diff)
+            cache_ARI_vals.append(cache_comparison.adjusted_rand_index())
+            prev_cache_set_same, prev_cache_set_diff = cache_comparison.get_pairs_lists()
 
 
         v_set = comparison.get_set_arr()
-        nn_v_set = nn_comparison.get_set_arr()
+        cache_v_set = cache_comparison.get_set_arr()
         flag= True
 
+
+    
+    print(q_num, " queries executed.")
+
     # visualize similarity metrics
-    viz.plot_clustering_similarity_graph(joint_normalized_MI_vals, "Joint Normalized Mutual Information")
-    viz.plot_clustering_similarity_graph(nn_joint_normalized_MI_vals, "Joint NMI - Nearest Neighbor")
+    viz.plot_clustering_similarity_graph(joint_normalized_MI_vals, "Joint Normalized Mutual Information - FDKCC")
+    viz.plot_clustering_similarity_graph(cache_joint_normalized_MI_vals, "Joint NMI - Cache")
 
     data = [("Joint Normalized Mutual Information", joint_normalized_MI_vals), 
-            ("Joint NMI - Nearest Neighbor", nn_joint_normalized_MI_vals)]
+            ("Joint NMI - Nearest Neighbor", cache_joint_normalized_MI_vals)]
     viz.plot_multiple_clustering_similarity_graph(data)
     print("average of NMI: ", sum(joint_normalized_MI_vals) / len(joint_normalized_MI_vals))
-    print("average of NN NMI: ", sum(nn_joint_normalized_MI_vals) / len(nn_joint_normalized_MI_vals))
+    print("average of cache NMI: ", sum(cache_joint_normalized_MI_vals) / len(cache_joint_normalized_MI_vals))
 
     viz.plot_clustering_similarity_graph(ARI_vals, "Clustering Similarity by ARI")
     data = [("Clustering Similarity by ARI", ARI_vals),
-            ("ARI - Nearest Neighbor", nn_ARI_vals)]
+            ("ARI - Cache", cache_ARI_vals)]
+
     viz.plot_multiple_clustering_similarity_graph(data)
     print("average of ARI: ", sum(ARI_vals) / len(ARI_vals))
-    print("average of NN ARI: ", sum(nn_ARI_vals) / len(nn_ARI_vals))
+    print("average of cache ARI: ", sum(cache_ARI_vals) / len(cache_ARI_vals))
 
         
