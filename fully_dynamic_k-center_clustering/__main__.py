@@ -107,7 +107,7 @@ def main():
         "epsilon": 0.1,
         "d_min" : 1,
         "d_max" : 80,
-        "points_path" : "dataset/xaa.txt",
+        "points_path" : "dataset/timestamped_gps_coordinate.txt",
         "queries_path" : "dataset/readable.txt",
         "cluster_size" : 10000,
         "window_length" : 10
@@ -126,12 +126,20 @@ def main():
     count = 0 
     File_object = open("dataset/smaller_queries.txt", "w")
 
+    query = []
     with open('dataset/readable.txt','r') as f:
         for line in f:
             if count > 10000:
                 break
             File_object.write(line)
+        #     query.append(line)
             count += 1
+
+        # random.shuffle(query)
+        # for i in query:
+        #     File_object.write(i)
+
+    # print("length of query: ", len(query))
 
     prog_args["queries_path"] = "dataset/smaller_queries.txt"
 
@@ -145,12 +153,12 @@ def main():
     #   Run Argument parser
     #
 
+    File_object.close()
+    f.close()
     arg_parse(prog_args)
 
     print("Program terminates")
 
-    File_object.close()
-    f.close()
     
 #run main()
 main()

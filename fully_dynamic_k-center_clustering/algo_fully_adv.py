@@ -206,6 +206,9 @@ class Fully_adv_cluster_cache(Fully_adv_cluster):
         # loop through unclustered data points and select new candidates for centers
         num_new_center = self.k - cluster_index
 
+        # listed_helper = list(helper_array)
+        # random.shuffle(listed_helper)
+
         for center_candidate in helper_array.copy():
             if len(new_centers) < num_new_center:
 
@@ -222,14 +225,19 @@ class Fully_adv_cluster_cache(Fully_adv_cluster):
 
             else:
                 break
-        
+
+        # listed_helper = list(helper_array)
+
         # add elements in unclustered set to new clusters so that each element belong to the cluster where element that was in same cluster is a current center
         for x in helper_array.copy():
+            # print("current element: ", x)
             for c in new_centers:
                 if cache[x] == cache[c] and self.radius >= fully_adv_distance(self.array[x], self.array[c]):
-                    self.clusters.add_element_set_collection(x, self.center_index_map[c])
+                    self.clusters.add_element_set_collection(x, self.center_index_map.get(c))
                     helper_array.remove(x)
                     break
+
+        # listed_helper = list(helper_array)
 
         # add still unclustered elements to cluster
         for unclusterd_x in helper_array:
@@ -390,6 +398,8 @@ def fully_adv_k_center_run(levels, cache_levels, nb_instances, queries, helper_a
     cache_joint_normalized_MI_vals = []
     ARI_vals = []
     cache_ARI_vals = []
+    ari_cont = []
+    cache_ari_cont = []
 
     prev_set_same, prev_set_diff = set(), set()
     prev_cache_set_same, prev_cache_set_diff = set(), set()
@@ -430,12 +440,20 @@ def fully_adv_k_center_run(levels, cache_levels, nb_instances, queries, helper_a
             joint_entropy = comparison.joint_entropy()
 
             nmi_output = 0 if (mutual_info == 0 or joint_entropy ==0) else mutual_info / joint_entropy
-            joint_normalized_MI_vals.append(nmi_output)
+            if nmi_output < 1.0:
+                joint_normalized_MI_vals.append(nmi_output)
             
-            # ARI
+            # ARI1
             comparison.initialize_pairs_measure(prev_set_same, prev_set_diff)
-            ARI_vals.append(comparison.adjusted_rand_index())
+            ari = comparison.adjusted_rand_index()
+            if ari < 1.0:
+                ARI_vals.append(ari)
             prev_set_same, prev_set_diff = comparison.get_pairs_lists()
+
+            #ARI2
+            ari_contingency_based = comparison.ari_contingency_table()
+            if ari_contingency_based <1.0:
+                ari_cont.append(ari_contingency_based)
 
         if cache_reclustering_flag:
             cache_comparison.make_contigency_table()
@@ -449,9 +467,14 @@ def fully_adv_k_center_run(levels, cache_levels, nb_instances, queries, helper_a
             
             # ARI
             cache_comparison.initialize_pairs_measure(prev_cache_set_same, prev_cache_set_diff)
-            cache_ARI_vals.append(cache_comparison.adjusted_rand_index())
+            ari = cache_comparison.adjusted_rand_index()
+            cache_ARI_vals.append(ari)
             prev_cache_set_same, prev_cache_set_diff = cache_comparison.get_pairs_lists()
 
+            # ari2
+            cache_ari_contingency = cache_comparison.ari_contingency_table()
+            if cache_ari_contingency <1.0:
+                cache_ari_cont.append(cache_ari_contingency)
 
         v_set = comparison.get_set_arr()
         cache_v_set = cache_comparison.get_set_arr()
@@ -478,5 +501,14 @@ def fully_adv_k_center_run(levels, cache_levels, nb_instances, queries, helper_a
     viz.plot_multiple_clustering_similarity_graph(data)
     print("average of ARI: ", sum(ARI_vals) / len(ARI_vals))
     print("average of cache ARI: ", sum(cache_ARI_vals) / len(cache_ARI_vals))
+
+    viz.plot_clustering_similarity_graph(ari_cont, "clustering similarity by contingency based ari")
+    data = [
+        ("Clustering similarity by contingency based ari", ari_cont),
+        ("ARI_contingency based - cache", cache_ari_cont)
+    ]
+    viz.plot_multiple_clustering_similarity_graph(data)
+    print("average of contingency_ARI: ", sum(ari_cont) / len(ari_cont))
+    print("average of contingency_cache ARI: ", sum(cache_ari_cont) / len(cache_ari_cont))
 
         
