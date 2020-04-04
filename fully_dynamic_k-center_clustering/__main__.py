@@ -107,7 +107,7 @@ def main():
         "epsilon": 0.1,
         "d_min" : 1,
         "d_max" : 80,
-        "points_path" : "dataset/timestamped_gps_coordinate.txt",
+        "points_path" : "dataset/xaa.txt",
         "queries_path" : "dataset/readable.txt",
         "cluster_size" : 10000,
         "window_length" : 10

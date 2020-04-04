@@ -8,6 +8,7 @@ from data_fully_adv import fully_adv_distance
 from utils import log_, shuffle_array
 from math import ceil, log
 from cluster_comparison import Cluster_comparator
+from center_comparison import Center_comparator
 import visualization as viz
 import static_variables as sv
 # from numba import jit, cuda 
@@ -391,6 +392,9 @@ def fully_adv_get_index_smallest(levels, nb_instances):
     return nb_instances
 
 def fully_adv_k_center_run(levels, cache_levels, nb_instances, queries, helper_array, cache_helper_array):
+    # ENVIRONMENT NUMBER 
+    ENV_NUM=24
+    
     q = query()
     q_num = 0
 
@@ -401,114 +405,133 @@ def fully_adv_k_center_run(levels, cache_levels, nb_instances, queries, helper_a
     ari_cont = []
     cache_ari_cont = []
 
+    center_difference_counts=[]
+
     prev_set_same, prev_set_diff = set(), set()
     prev_cache_set_same, prev_cache_set_diff = set(), set()
-    cluster_before_query = copy.deepcopy(levels[24].clusters.sets)
-    cache_cluster_before_query = copy.deepcopy(cache_levels[24].clusters.sets)
+    cluster_before_query = copy.deepcopy(levels[ENV_NUM].clusters.sets)
+    cache_cluster_before_query = copy.deepcopy(cache_levels[ENV_NUM].clusters.sets)
     flag = False
     v_set= None
     cache_v_set = None
 
-    while queries.get_next_query_set(q, levels[24].clusters) :
+    while queries.get_next_query_set(q, levels[ENV_NUM].clusters) :
         #Count Query number
         q_num+=1
 
+        centers_before = set(levels[ENV_NUM].centers)
         # apply a query
         exit_status, query_info, has_reclutered_list = fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
-        cache_exit_status, cache_query_info, cache_has_reclutered_list = fully_adv_apply_one_query(cache_levels, nb_instances, q, cache_helper_array)
         
-        # Flag is True when has_reclusterd_list[] exists and is true 
-        reclustering_flag  = has_reclutered_list[24] if has_reclutered_list else False
-        cache_reclustering_flag = cache_has_reclutered_list[24] if cache_has_reclutered_list else False
+        centers_after = set(levels[ENV_NUM].centers) 
+        
+        center_comparator = Center_comparator(centers_before, centers_after)
+        
+        center_diff_cnt = center_comparator.get_difference_count()
+        # print("==========================")
+        # print(center_comparator.get_set_difference())
+        # print(center_diff_cnt)
+        # print("==========================")
 
-        # (re)formulate cluster comparison envrionment 
-        cluster_after_query = levels[24].clusters.sets
-        cache_cluster_after_query = cache_levels[24].clusters.sets
 
-        comparison = Cluster_comparator(cluster_before_query, cluster_after_query)
-        cache_comparison = Cluster_comparator(cache_cluster_before_query, cache_cluster_after_query)
+    #     cache_exit_status, cache_query_info, cache_has_reclutered_list = fully_adv_apply_one_query(cache_levels, nb_instances, q, cache_helper_array)
         
-        if flag:
-            comparison.set_set_arr(v_set)
-            cache_comparison.set_set_arr(cache_v_set)
-        
+    #     # Flag is True when has_reclusterd_list[] exists and is true 
+        reclustering_flag  = has_reclutered_list[ENV_NUM] if has_reclutered_list else False
         if reclustering_flag:
-            comparison.make_contigency_table()
+            center_difference_counts.append(center_diff_cnt)
+
+    #     cache_reclustering_flag = cache_has_reclutered_list[ENV_NUM] if cache_has_reclutered_list else False
+
+    #     # (re)formulate cluster comparison envrionment 
+    #     cluster_after_query = levels[ENV_NUM].clusters.sets
+    #     cache_cluster_after_query = cache_levels[ENV_NUM].clusters.sets
+
+    #     comparison = Cluster_comparator(cluster_before_query, cluster_after_query)
+    #     cache_comparison = Cluster_comparator(cache_cluster_before_query, cache_cluster_after_query)
+        
+    #     if flag:
+    #         comparison.set_set_arr(v_set)
+    #         cache_comparison.set_set_arr(cache_v_set)
+        
+    #     if reclustering_flag:
+    #         comparison.make_contigency_table()
             
-            # Normalized Mutual Information
-            mutual_info = comparison.mutual_information()
-            joint_entropy = comparison.joint_entropy()
+    #         # Normalized Mutual Information
+    #         mutual_info = comparison.mutual_information()
+    #         joint_entropy = comparison.joint_entropy()
 
-            nmi_output = 0 if (mutual_info == 0 or joint_entropy ==0) else mutual_info / joint_entropy
-            if nmi_output < 1.0:
-                joint_normalized_MI_vals.append(nmi_output)
+    #         nmi_output = 0 if (mutual_info == 0 or joint_entropy ==0) else mutual_info / joint_entropy
+    #         if nmi_output < 1.0:
+    #             joint_normalized_MI_vals.append(nmi_output)
             
-            # ARI1
-            comparison.initialize_pairs_measure(prev_set_same, prev_set_diff)
-            ari = comparison.adjusted_rand_index()
-            if ari < 1.0:
-                ARI_vals.append(ari)
-            prev_set_same, prev_set_diff = comparison.get_pairs_lists()
+    #         # ARI1
+    #         comparison.initialize_pairs_measure(prev_set_same, prev_set_diff)
+    #         ari = comparison.adjusted_rand_index()
+    #         if ari < 1.0:
+    #             ARI_vals.append(ari)
+    #         prev_set_same, prev_set_diff = comparison.get_pairs_lists()
 
-            #ARI2
-            ari_contingency_based = comparison.ari_contingency_table()
-            if ari_contingency_based <1.0:
-                ari_cont.append(ari_contingency_based)
+    #         #ARI2
+    #         ari_contingency_based = comparison.ari_contingency_table()
+    #         if ari_contingency_based <1.0:
+    #             ari_cont.append(ari_contingency_based)
 
-        if cache_reclustering_flag:
-            cache_comparison.make_contigency_table()
+    #     if cache_reclustering_flag:
+    #         cache_comparison.make_contigency_table()
 
-            # Normalized Mutual Information
-            cache_mutual_info = cache_comparison.mutual_information()
-            cache_joint_entropy = cache_comparison.joint_entropy()
+    #         # Normalized Mutual Information
+    #         cache_mutual_info = cache_comparison.mutual_information()
+    #         cache_joint_entropy = cache_comparison.joint_entropy()
 
-            cache_nmi_output = 0 if (cache_mutual_info == 0 or cache_joint_entropy ==0) else cache_mutual_info / cache_joint_entropy
-            cache_joint_normalized_MI_vals.append(cache_nmi_output)
+    #         cache_nmi_output = 0 if (cache_mutual_info == 0 or cache_joint_entropy ==0) else cache_mutual_info / cache_joint_entropy
+    #         cache_joint_normalized_MI_vals.append(cache_nmi_output)
             
-            # ARI
-            cache_comparison.initialize_pairs_measure(prev_cache_set_same, prev_cache_set_diff)
-            ari = cache_comparison.adjusted_rand_index()
-            cache_ARI_vals.append(ari)
-            prev_cache_set_same, prev_cache_set_diff = cache_comparison.get_pairs_lists()
+    #         # ARI
+    #         cache_comparison.initialize_pairs_measure(prev_cache_set_same, prev_cache_set_diff)
+    #         ari = cache_comparison.adjusted_rand_index()
+    #         cache_ARI_vals.append(ari)
+    #         prev_cache_set_same, prev_cache_set_diff = cache_comparison.get_pairs_lists()
 
-            # ari2
-            cache_ari_contingency = cache_comparison.ari_contingency_table()
-            if cache_ari_contingency <1.0:
-                cache_ari_cont.append(cache_ari_contingency)
+    #         # ari2
+    #         cache_ari_contingency = cache_comparison.ari_contingency_table()
+    #         if cache_ari_contingency <1.0:
+    #             cache_ari_cont.append(cache_ari_contingency)
 
-        v_set = comparison.get_set_arr()
-        cache_v_set = cache_comparison.get_set_arr()
-        flag= True
+    #     v_set = comparison.get_set_arr()
+    #     cache_v_set = cache_comparison.get_set_arr()
+    #     flag= True
 
 
-    
-    print(q_num, " queries executed.")
+    viz.plot_clustering_similarity_graph(center_difference_counts, "Center Change Counter - FDKCC")
+    print("average of center changes : {} ".format(sum(center_difference_counts)/len(center_difference_counts)))
+    # print(q_num, " queries executed.")
 
-    # visualize similarity metrics
-    viz.plot_clustering_similarity_graph(joint_normalized_MI_vals, "Joint Normalized Mutual Information - FDKCC")
-    viz.plot_clustering_similarity_graph(cache_joint_normalized_MI_vals, "Joint NMI - Cache")
+    # # visualize similarity metrics
+    # viz.plot_clustering_similarity_graph(joint_normalized_MI_vals, "Joint Normalized Mutual Information - FDKCC")
+    # viz.plot_clustering_similarity_graph(cache_joint_normalized_MI_vals, "Joint NMI - Cache")
 
-    data = [("Joint Normalized Mutual Information", joint_normalized_MI_vals), 
-            ("Joint NMI - Nearest Neighbor", cache_joint_normalized_MI_vals)]
-    viz.plot_multiple_clustering_similarity_graph(data)
-    print("average of NMI: ", sum(joint_normalized_MI_vals) / len(joint_normalized_MI_vals))
-    print("average of cache NMI: ", sum(cache_joint_normalized_MI_vals) / len(cache_joint_normalized_MI_vals))
+    # data = [("Joint Normalized Mutual Information", joint_normalized_MI_vals), 
+    #         ("Joint NMI - Nearest Neighbor", cache_joint_normalized_MI_vals)]
+    # viz.plot_multiple_clustering_similarity_graph(data)
+    # print("average of NMI: ", sum(joint_normalized_MI_vals) / len(joint_normalized_MI_vals))
+    # print("average of cache NMI: ", sum(cache_joint_normalized_MI_vals) / len(cache_joint_normalized_MI_vals))
 
-    viz.plot_clustering_similarity_graph(ARI_vals, "Clustering Similarity by ARI")
-    data = [("Clustering Similarity by ARI", ARI_vals),
-            ("ARI - Cache", cache_ARI_vals)]
+    # viz.plot_clustering_similarity_graph(ARI_vals, "Clustering Similarity by ARI")
+    # data = [("Clustering Similarity by ARI", ARI_vals),
+    #         ("ARI - Cache", cache_ARI_vals)]
 
-    viz.plot_multiple_clustering_similarity_graph(data)
-    print("average of ARI: ", sum(ARI_vals) / len(ARI_vals))
-    print("average of cache ARI: ", sum(cache_ARI_vals) / len(cache_ARI_vals))
+    # viz.plot_multiple_clustering_similarity_graph(data)
+    # print("average of ARI: ", sum(ARI_vals) / len(ARI_vals))
+    # print("average of cache ARI: ", sum(cache_ARI_vals) / len(cache_ARI_vals))
 
-    viz.plot_clustering_similarity_graph(ari_cont, "clustering similarity by contingency based ari")
-    data = [
-        ("Clustering similarity by contingency based ari", ari_cont),
-        ("ARI_contingency based - cache", cache_ari_cont)
-    ]
-    viz.plot_multiple_clustering_similarity_graph(data)
-    print("average of contingency_ARI: ", sum(ari_cont) / len(ari_cont))
-    print("average of contingency_cache ARI: ", sum(cache_ari_cont) / len(cache_ari_cont))
+    # viz.plot_clustering_similarity_graph(ari_cont, "clustering similarity by contingency based ari")
+    # data = [
+    #     ("Clustering similarity by contingency based ari", ari_cont),
+    #     ("ARI_contingency based - cache", cache_ari_cont)
+    # ]
+    # viz.plot_multiple_clustering_similarity_graph(data)
+    # print("average of contingency_ARI: ", sum(ari_cont) / len(ari_cont))
+    # print("average of contingency_cache ARI: ", sum(cache_ari_cont) / len(cache_ari_cont))
 
         
