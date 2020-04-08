@@ -207,10 +207,10 @@ class Fully_adv_cluster_cache(Fully_adv_cluster):
         # loop through unclustered data points and select new candidates for centers
         num_new_center = self.k - cluster_index
 
-        # listed_helper = list(helper_array)
-        # random.shuffle(listed_helper)
+        listed_helper = list(helper_array)
+        random.shuffle(listed_helper)
 
-        for center_candidate in helper_array.copy():
+        for center_candidate in listed_helper.copy():
             if len(new_centers) < num_new_center:
 
                 candidate_flag = True
@@ -227,10 +227,10 @@ class Fully_adv_cluster_cache(Fully_adv_cluster):
             else:
                 break
 
-        # listed_helper = list(helper_array)
+        listed_helper = list(helper_array)
 
         # add elements in unclustered set to new clusters so that each element belong to the cluster where element that was in same cluster is a current center
-        for x in helper_array.copy():
+        for x in listed_helper.copy():
             # print("current element: ", x)
             for c in new_centers:
                 if cache[x] == cache[c] and self.radius >= fully_adv_distance(self.array[x], self.array[c]):
@@ -238,10 +238,10 @@ class Fully_adv_cluster_cache(Fully_adv_cluster):
                     helper_array.remove(x)
                     break
 
-        # listed_helper = list(helper_array)
+        listed_helper = list(helper_array)
 
         # add still unclustered elements to cluster
-        for unclusterd_x in helper_array:
+        for unclusterd_x in listed_helper:
             self.fully_adv_k_center_add(unclusterd_x)
 
 
@@ -393,7 +393,7 @@ def fully_adv_get_index_smallest(levels, nb_instances):
 
 def fully_adv_k_center_run(levels, cache_levels, nb_instances, queries, helper_array, cache_helper_array):
     # ENVIRONMENT NUMBER 
-    ENV_NUM=24
+    ENV_NUM=15
     
     q = query()
     q_num = 0
@@ -406,7 +406,8 @@ def fully_adv_k_center_run(levels, cache_levels, nb_instances, queries, helper_a
     cache_ari_cont = []
 
     center_difference_counts=[]
-
+    cache_center_difference_counts=[]
+    
     prev_set_same, prev_set_diff = set(), set()
     prev_cache_set_same, prev_cache_set_diff = set(), set()
     cluster_before_query = copy.deepcopy(levels[ENV_NUM].clusters.sets)
@@ -419,11 +420,11 @@ def fully_adv_k_center_run(levels, cache_levels, nb_instances, queries, helper_a
         #Count Query number
         q_num+=1
 
-        centers_before = set(levels[ENV_NUM].centers)
+        centers_before = set(levels[ENV_NUM].centers[:-1])
         # apply a query
         exit_status, query_info, has_reclutered_list = fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
         
-        centers_after = set(levels[ENV_NUM].centers) 
+        centers_after = set(levels[ENV_NUM].centers[:-1]) 
         
         center_comparator = Center_comparator(centers_before, centers_after)
         
@@ -433,15 +434,20 @@ def fully_adv_k_center_run(levels, cache_levels, nb_instances, queries, helper_a
         # print(center_diff_cnt)
         # print("==========================")
 
+        cache_before = set(cache_levels[ENV_NUM].centers[:-1])
+        cache_exit_status, cache_query_info, cache_has_reclutered_list = fully_adv_apply_one_query(cache_levels, nb_instances, q, cache_helper_array)
+        cache_after= set(cache_levels[ENV_NUM].centers[:-1])
+        cache_center_comparator = Center_comparator(cache_before, cache_after)
+        cache_diff_cnt = cache_center_comparator.get_difference_count()
 
-    #     cache_exit_status, cache_query_info, cache_has_reclutered_list = fully_adv_apply_one_query(cache_levels, nb_instances, q, cache_helper_array)
-        
     #     # Flag is True when has_reclusterd_list[] exists and is true 
         reclustering_flag  = has_reclutered_list[ENV_NUM] if has_reclutered_list else False
         if reclustering_flag:
             center_difference_counts.append(center_diff_cnt)
 
-    #     cache_reclustering_flag = cache_has_reclutered_list[ENV_NUM] if cache_has_reclutered_list else False
+        cache_reclustering_flag = cache_has_reclutered_list[ENV_NUM] if cache_has_reclutered_list else False
+        if cache_reclustering_flag:
+            cache_center_difference_counts.append(cache_diff_cnt)
 
     #     # (re)formulate cluster comparison envrionment 
     #     cluster_after_query = levels[ENV_NUM].clusters.sets
@@ -505,6 +511,10 @@ def fully_adv_k_center_run(levels, cache_levels, nb_instances, queries, helper_a
 
     viz.plot_clustering_similarity_graph(center_difference_counts, "Center Change Counter - FDKCC")
     print("average of center changes : {} ".format(sum(center_difference_counts)/len(center_difference_counts)))
+
+    viz.plot_clustering_similarity_graph(cache_center_difference_counts, "Center Change Counter - cache")
+    print("average of center changes for cache : {} ".format(sum(cache_center_difference_counts)/len(cache_center_difference_counts)))
+
     # print(q_num, " queries executed.")
 
     # # visualize similarity metrics
