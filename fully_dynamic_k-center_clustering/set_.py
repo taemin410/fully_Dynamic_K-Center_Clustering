@@ -1,3 +1,5 @@
+from data_fully_adv import fully_adv_distance
+
 NOT_IN_SET = -1
         
 class Element_pointer:
@@ -116,6 +118,44 @@ class Set_collection:
             set_index += 1
 
         return size, cache
+
+    def selective_remove_all_elements_after_set(self, set_index, centers, radius, data_array, array, size) -> int:
+        size = 0
+        num_unclustered = 0
+        deleted_center = centers[set_index]
+        
+        # uncluster data points only in overlapping clusters 
+        while set_index < self.nb_sets - 1:
+            if centers[set_index] !=None:
+                if fully_adv_distance(data_array[deleted_center], data_array[centers[set_index]]) < 2 * radius:    
+                    
+                    for iter_set in range(self.sets[set_index].card):
+                        array.append(self.sets[set_index].elements[iter_set])
+                        
+                        self.sets[set_index].elm_ptr[array[size]].pointer = NOT_IN_SET
+                        self.sets[set_index].elm_ptr[array[size]].set_index = NOT_IN_SET
+                        
+                        size += 1
+
+                    num_unclustered += 1
+                    self.sets[set_index].elements = [None] * self.max_size
+                    self.sets[set_index].card = 0
+
+            set_index += 1
+
+        # unclustered data points
+        for iter_set in range(self.sets[set_index].card):
+            array.append(self.sets[set_index].elements[iter_set])
+            
+            self.sets[set_index].elm_ptr[array[size]].pointer = NOT_IN_SET
+            self.sets[set_index].elm_ptr[array[size]].set_index = NOT_IN_SET
+            
+            size += 1
+
+        self.sets[set_index].elements = [None] * self.max_size
+        self.sets[set_index].card = 0
+        
+        return size, num_unclustered
 
     def has_element_set_collection(self, element) -> int:
         return NOT_IN_SET != self.sets[0].elm_ptr[element].set_index

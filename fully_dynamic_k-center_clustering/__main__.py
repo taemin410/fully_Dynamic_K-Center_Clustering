@@ -65,11 +65,11 @@ def fully_adv_k_center(prog_args):
                                 	prog_args["d_max"],nb_instances, array,
                                     size, prog_args["cluster_size"], helper_array)
 
-    print("building cache-based cluster array...")
+    print("building new algorithm based cluster array...")
     nb_instances, cache_helper_array = fully_adv_initialise_level_array(cache_clusters_array, prog_args["k"],
                                     prog_args["epsilon"], prog_args["d_min"],
                                 	prog_args["d_max"],nb_instances, array,
-                                    size, prog_args["cluster_size"], cache_helper_array, cluster_type="cache")
+                                    size, prog_args["cluster_size"], cache_helper_array, cluster_type="selective")
 
     print("fully adv environment successfully intialized!")
 
@@ -131,13 +131,13 @@ def main():
         for line in f:
             if count > 10000:
                 break
-            # File_object.write(line)
-            query.append(line)
+            File_object.write(line)
+            # query.append(line)
             count += 1
 
-        random.shuffle(query)
-        for i in query:
-            File_object.write(i)
+        # random.shuffle(query)
+        # for i in query:
+        #     File_object.write(i)
 
     # print("length of query: ", len(query))
 

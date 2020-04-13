@@ -2,6 +2,7 @@ import point
 import random
 import copy
 import heapq
+import numpy as np
 from set_ import Set_, Set_collection
 from query import query, query_provider
 from data_fully_adv import fully_adv_distance
@@ -259,13 +260,41 @@ class Fully_adv_cluster_cache(Fully_adv_cluster):
             size, cache = self.clusters.cache_and_remove_all_elements(cluster_index, helper_array, size)
             random.shuffle(helper_array)
 
-            #@TODO: change helper array to set 
             self.fully_adv_k_center_cache_recluster(cluster_index, cache, set(helper_array))
             
             return True
         
         #if in case of simple deletion
-        return False 
+        return False
+
+class Fully_adv_cluster_selective_unclustering(Fully_adv_cluster):
+    def __init__(self, k, radius, array, nb_points, cluster_size):
+        super().__init__(k, radius, array, nb_points, cluster_size)
+
+    def fully_adv_k_center_delete(self, element_index, helper_array) -> bool :
+        size = int()
+        cluster_index = self.clusters.get_set_index(element_index)
+        self.clusters.remove_element_set_collection(element_index)
+
+        # center of cluster deleted
+        if cluster_index < self.k and element_index == self.centers[cluster_index]:
+            self.nb = cluster_index
+            helper_array.clear()
+            size, num_unclustered = self.clusters.selective_remove_all_elements_after_set(cluster_index, self.centers, self.radius, self.array, helper_array, size)
+            
+            # shift centers and elements
+            num_shift = (self.k - cluster_index + 1) - num_unclustered 
+            np.roll(self.centers[cluster_index:self.k], num_shift)
+            np.roll(self.clusters.sets[cluster_index:self.k], num_shift)
+
+            random.shuffle(helper_array)
+            
+            for point in helper_array:
+                self.fully_adv_k_center_add(point)
+
+            return True 
+        #if in case of simple deletion
+        return False
 
 def fully_adv_write_log(levels, nb_instances, cluster_index, nb_points, q) -> int:
     key = 'a' if q.type == "ADD" else 'd'
@@ -376,6 +405,12 @@ def fully_adv_initialise_level_array(levels, k, eps, d_min, d_max, nb_instances,
         levels.append(Fully_adv_cluster_cache(k, 0, points, nb_points, cluster_size))
         for _ in range(1, tmp):
             levels.append(Fully_adv_cluster_cache(k, d_min, points, nb_points, cluster_size))
+            d_min = (1 + eps) * d_min
+
+    elif cluster_type == "selective": # selective unlcustering
+        levels.append(Fully_adv_cluster_selective_unclustering(k, 0, points, nb_points, cluster_size))
+        for _ in range(1, tmp):
+            levels.append(Fully_adv_cluster_selective_unclustering(k, d_min, points, nb_points, cluster_size))
             d_min = (1 + eps) * d_min
 
     return nb_instances, helper_array
