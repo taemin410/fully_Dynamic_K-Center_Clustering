@@ -131,13 +131,13 @@ def main():
         for line in f:
             if count > 10000:
                 break
-            # File_object.write(line)
-            query.append(line)
+            File_object.write(line)
+            # query.append(line)
             count += 1
 
-        random.shuffle(query)
-        for i in query:
-            File_object.write(i)
+        # random.shuffle(query)
+        # for i in query:
+        #     File_object.write(i)
 
     # print("length of query: ", len(query))
 

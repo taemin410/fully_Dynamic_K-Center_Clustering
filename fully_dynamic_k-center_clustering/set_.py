@@ -131,10 +131,11 @@ class Set_collection:
                 distance = fully_adv_distance(data_array[deleted_center], data_array[centers[set_index]])
                 if  distance < 2 * radius or distance == 0:    
                     for iter_set in range(self.sets[set_index].card):
-                        array.append(self.sets[set_index].elements[iter_set])
+                        current_elm = self.sets[set_index].elements[iter_set]
+                        array.append(current_elm)
                         
-                        self.sets[set_index].elm_ptr[array[size]].pointer = NOT_IN_SET
-                        self.sets[set_index].elm_ptr[array[size]].set_index = NOT_IN_SET
+                        self.sets[set_index].elm_ptr[current_elm].pointer = NOT_IN_SET
+                        self.sets[set_index].elm_ptr[current_elm].set_index = NOT_IN_SET
                         
                         size += 1
 
@@ -146,10 +147,11 @@ class Set_collection:
 
         # unclustered data points
         for iter_set in range(self.sets[set_index].card):
-            array.append(self.sets[set_index].elements[iter_set])
+            current_elm = self.sets[set_index].elements[iter_set]
+            array.append(current_elm)
             
-            self.sets[set_index].elm_ptr[array[size]].pointer = NOT_IN_SET
-            self.sets[set_index].elm_ptr[array[size]].set_index = NOT_IN_SET
+            self.sets[set_index].elm_ptr[current_elm].pointer = NOT_IN_SET
+            self.sets[set_index].elm_ptr[current_elm].set_index = NOT_IN_SET
             
             size += 1
 

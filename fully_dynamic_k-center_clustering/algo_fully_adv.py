@@ -280,7 +280,6 @@ class Fully_adv_cluster_selective_unclustering(Fully_adv_cluster):
 
         # center of cluster deleted
         if cluster_index < self.k and element_index == self.centers[cluster_index]:
-            self.nb = cluster_index
             helper_array.clear()
             size, unclustered_index_arr = self.clusters.selective_remove_all_elements_after_set(cluster_index, self.centers, self.radius, self.array, helper_array, size)
 
@@ -289,7 +288,10 @@ class Fully_adv_cluster_selective_unclustering(Fully_adv_cluster):
             for i in range(cluster_index, num_cluster):
                 if i not in unclustered_index_arr:
                     not_unclustered.append(i)
-                    
+
+            # update number of cluster        
+            self.nb = cluster_index + len(not_unclustered)
+
             # initialize heapq for unclustered index
             unclustered_index_heap = []
             for x in unclustered_index_arr:
@@ -304,7 +306,7 @@ class Fully_adv_cluster_selective_unclustering(Fully_adv_cluster):
                 heapq.heappush(unclustered_index_heap, index)
 
                 for e in self.clusters.sets[swap_index].elements:
-                    if e:
+                    if e != None:
                         s = self.clusters.sets[swap_index]
                         s.elm_ptr[e].set_index = swap_index
 
@@ -454,7 +456,7 @@ def fully_adv_get_index_smallest(levels, nb_instances):
 
 def fully_adv_k_center_run(levels, cache_levels, nb_instances, queries, helper_array, cache_helper_array):
     # ENVIRONMENT NUMBER 
-    ENV_NUM=5
+    ENV_NUM=15
     PRINT_ALL = False
     
     q = query()
