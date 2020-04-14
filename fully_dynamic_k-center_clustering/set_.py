@@ -121,14 +121,15 @@ class Set_collection:
 
     def selective_remove_all_elements_after_set(self, set_index, centers, radius, data_array, array, size) -> int:
         size = 0
-        num_unclustered = 0
+        # num_unclustered = 0
+        deleted_index = set()
         deleted_center = centers[set_index]
         
         # uncluster data points only in overlapping clusters 
         while set_index < self.nb_sets - 1:
             if centers[set_index] !=None:
-                if fully_adv_distance(data_array[deleted_center], data_array[centers[set_index]]) < 2 * radius:    
-                    
+                distance = fully_adv_distance(data_array[deleted_center], data_array[centers[set_index]])
+                if  distance < 2 * radius or distance == 0:    
                     for iter_set in range(self.sets[set_index].card):
                         array.append(self.sets[set_index].elements[iter_set])
                         
@@ -137,7 +138,7 @@ class Set_collection:
                         
                         size += 1
 
-                    num_unclustered += 1
+                    deleted_index.add(set_index)
                     self.sets[set_index].elements = [None] * self.max_size
                     self.sets[set_index].card = 0
 
@@ -155,7 +156,7 @@ class Set_collection:
         self.sets[set_index].elements = [None] * self.max_size
         self.sets[set_index].card = 0
         
-        return size, num_unclustered
+        return size, deleted_index
 
     def has_element_set_collection(self, element) -> int:
         return NOT_IN_SET != self.sets[0].elm_ptr[element].set_index
@@ -164,7 +165,6 @@ class Set_collection:
 '''Should Not be included in Set_ or Set_collection'''
 def initialise_set_n_common(n, max_size, range_) -> list:
     set_coll = []
-    # set_coll.append(Set_(max_size, range_, 0))
     elem_ptr_list = [Element_pointer(-1, -1) for _ in range(range_)]
 
     for i in range(0, n):
