@@ -577,16 +577,21 @@ def fully_adv_k_center_run(levels, cache_levels, nb_instances, queries, helper_a
         cache_v_set = cache_comparison.get_set_arr()
         flag= True
 
+    # print(q_num, " queries executed.")
 
+    # visualize similarity metrics
+    # Consistency
     viz.plot_clustering_similarity_graph(center_difference_counts, "Center Change Counter - FDKCC")
     print("average of center changes : {} ".format(sum(center_difference_counts)/len(center_difference_counts)))
 
     viz.plot_clustering_similarity_graph(cache_center_difference_counts, "Center Change Counter - selective")
     print("average of center changes for Selective : {} ".format(sum(cache_center_difference_counts)/len(cache_center_difference_counts)))
 
-    # print(q_num, " queries executed.")
+    data = [("Consistency - FDKCC", center_difference_counts),
+            ("Consistency - Selective", cache_center_difference_counts)]
+    viz.plot_multiple_clustering_similarity_graph(data)
 
-    # visualize similarity metrics
+    # NMI
     viz.plot_clustering_similarity_graph(joint_normalized_MI_vals, "Joint Normalized Mutual Information - FDKCC")
     viz.plot_clustering_similarity_graph(cache_joint_normalized_MI_vals, "Joint NMI - selective")
 
@@ -596,6 +601,7 @@ def fully_adv_k_center_run(levels, cache_levels, nb_instances, queries, helper_a
     print("average of NMI: ", sum(joint_normalized_MI_vals) / len(joint_normalized_MI_vals))
     print("average of Selective NMI: ", sum(cache_joint_normalized_MI_vals) / len(cache_joint_normalized_MI_vals))
 
+    # ARI
     viz.plot_clustering_similarity_graph(ARI_vals, "Clustering Similarity by ARI")
     data = [("Clustering Similarity by ARI", ARI_vals),
             ("ARI - Selective", cache_ARI_vals)]
