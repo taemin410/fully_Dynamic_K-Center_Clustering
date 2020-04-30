@@ -2,12 +2,14 @@ import point
 import random
 import copy
 import heapq
+import numpy as np
 from set_ import Set_, Set_collection
 from query import query, query_provider
 from data_fully_adv import fully_adv_distance
 from utils import log_, shuffle_array
 from math import ceil, log
 from cluster_comparison import Cluster_comparator
+from center_comparison import Center_comparator
 import visualization as viz
 import static_variables as sv
 # from numba import jit, cuda 
@@ -58,7 +60,7 @@ class Fully_adv_cluster:
         
         return self.nb
 
-    def fully_adv_k_center_delete(self, element_index, helper_array) -> None:
+    def fully_adv_k_center_delete(self, element_index, helper_array) -> bool :
         size = int()
         cluster_index = self.clusters.get_set_index(element_index)
         self.clusters.remove_element_set_collection(element_index)
@@ -72,6 +74,10 @@ class Fully_adv_cluster:
             
             for point in helper_array:
                 self.fully_adv_k_center_add(point)
+
+            return True 
+        #if in case of simple deletion
+        return False
 
     def fully_adv_compute_true_radius(self) -> float:
         max_rad = 0
@@ -110,7 +116,7 @@ class Fully_adv_cluster_nearest_neighbor(Fully_adv_cluster):
         
         return self.nb
 
-    def fully_adv_k_center_delete(self, element_index, helper_array) -> None:
+    def fully_adv_k_center_delete(self, element_index, helper_array) -> bool :
             size = int()
             cluster_index = self.clusters.get_set_index(element_index)
             self.clusters.remove_element_set_collection(element_index)
@@ -158,6 +164,9 @@ class Fully_adv_cluster_nearest_neighbor(Fully_adv_cluster):
                     if point not in new_center_candidates:
                         self.fully_adv_k_center_add(point)
 
+                return True
+            #if in case of simple deletion
+            return False 
 
 class Fully_adv_cluster_cache(Fully_adv_cluster):
     def __init__(self, k, radius, array, nb_points, cluster_size):
@@ -199,7 +208,10 @@ class Fully_adv_cluster_cache(Fully_adv_cluster):
         # loop through unclustered data points and select new candidates for centers
         num_new_center = self.k - cluster_index
 
-        for center_candidate in helper_array.copy():
+        listed_helper = list(helper_array)
+        random.shuffle(listed_helper)
+
+        for center_candidate in listed_helper.copy():
             if len(new_centers) < num_new_center:
 
                 candidate_flag = True
@@ -215,17 +227,22 @@ class Fully_adv_cluster_cache(Fully_adv_cluster):
 
             else:
                 break
-        
+
+        listed_helper = list(helper_array)
+
         # add elements in unclustered set to new clusters so that each element belong to the cluster where element that was in same cluster is a current center
-        for x in helper_array.copy():
+        for x in listed_helper.copy():
+            # print("current element: ", x)
             for c in new_centers:
                 if cache[x] == cache[c] and self.radius >= fully_adv_distance(self.array[x], self.array[c]):
-                    self.clusters.add_element_set_collection(x, self.center_index_map[c])
+                    self.clusters.add_element_set_collection(x, self.center_index_map.get(c))
                     helper_array.remove(x)
                     break
 
+        listed_helper = list(helper_array)
+
         # add still unclustered elements to cluster
-        for unclusterd_x in helper_array:
+        for unclusterd_x in listed_helper:
             self.fully_adv_k_center_add(unclusterd_x)
 
 
@@ -243,13 +260,74 @@ class Fully_adv_cluster_cache(Fully_adv_cluster):
             size, cache = self.clusters.cache_and_remove_all_elements(cluster_index, helper_array, size)
             random.shuffle(helper_array)
 
-            #@TODO: change helper array to set 
             self.fully_adv_k_center_cache_recluster(cluster_index, cache, set(helper_array))
+            
+            return True
+        
+        #if in case of simple deletion
+        return False
+
+class Fully_adv_cluster_selective_unclustering(Fully_adv_cluster):
+    def __init__(self, k, radius, array, nb_points, cluster_size):
+        super().__init__(k, radius, array, nb_points, cluster_size)
+
+    def fully_adv_k_center_delete(self, element_index, helper_array) -> bool :
+        size = int()
+        cluster_index = self.clusters.get_set_index(element_index)
+        self.clusters.remove_element_set_collection(element_index)
+        
+        num_cluster = self.nb
+
+        # center of cluster deleted
+        if cluster_index < self.k and element_index == self.centers[cluster_index]:
+            helper_array.clear()
+            size, unclustered_index_arr = self.clusters.selective_remove_all_elements_after_set(cluster_index, self.centers, self.radius, self.array, helper_array, size)
+
+            # make set of not-unclustered centers
+            not_unclustered = []
+            for i in range(cluster_index, num_cluster):
+                if i not in unclustered_index_arr:
+                    not_unclustered.append(i)
+
+            # update number of cluster        
+            self.nb = cluster_index + len(not_unclustered)
+
+            # initialize heapq for unclustered index
+            unclustered_index_heap = []
+            for x in unclustered_index_arr:
+                heapq.heappush(unclustered_index_heap, x)
+
+            for index in not_unclustered:
+                swap_index = heapq.heappop(unclustered_index_heap)
+                self.centers[index], self.centers[swap_index] = self.centers[swap_index], self.centers[index]
+                self.clusters.sets[index], self.clusters.sets[swap_index] = self.clusters.sets[swap_index], self.clusters.sets[index]
+                self.clusters.sets[swap_index].index = swap_index
+                self.clusters.sets[index].index = index
+                heapq.heappush(unclustered_index_heap, index)
+
+                for e in self.clusters.sets[swap_index].elements:
+                    if e != None:
+                        s = self.clusters.sets[swap_index]
+                        s.elm_ptr[e].set_index = swap_index
+
+            random.shuffle(helper_array)
+            for point in helper_array:
+                self.fully_adv_k_center_add(point)
+
+            return True 
+        #if in case of simple deletion
+        return False
 
 def fully_adv_write_log(levels, nb_instances, cluster_index, nb_points, q) -> int:
     key = 'a' if q.type == "ADD" else 'd'
     if log_.has_log():
         result = fully_adv_get_index_smallest(levels, nb_instances)
+
+        # if result == 0:
+        #     print("-----")
+        #     for i in levels[result].clusters.sets:
+        #         print(set(i.elements))
+        #     print("-----")
 
         if result == nb_instances:
             print('Error, no feasible radius possible found after inserting', q.data_index)
@@ -295,11 +373,15 @@ def fully_adv_apply_one_query(levels, nb_instances, q, helper_array) -> tuple:
     else:
         sv.nb_points -= 1
 
+        reclustered_levels_list=[]
         # delete a data point from all clustering environments
         for i in range(nb_instances):
-            levels[i].fully_adv_k_center_delete(q.data_index, helper_array)
+            reclustered_levels_list.append(levels[i].fully_adv_k_center_delete(q.data_index, helper_array))
+        
+        return fully_adv_write_log(levels, nb_instances, cluster_index, sv.nb_points, q), q , reclustered_levels_list
 
-    return fully_adv_write_log(levels, nb_instances, cluster_index, sv.nb_points, q), q
+
+    return fully_adv_write_log(levels, nb_instances, cluster_index, sv.nb_points, q), q , []
 
 def fully_adv_center_run(levels, nb_instances, queries, helper_array) -> None:
     q = query() #query type pointer
@@ -353,6 +435,12 @@ def fully_adv_initialise_level_array(levels, k, eps, d_min, d_max, nb_instances,
             levels.append(Fully_adv_cluster_cache(k, d_min, points, nb_points, cluster_size))
             d_min = (1 + eps) * d_min
 
+    elif cluster_type == "selective": # selective unlcustering
+        levels.append(Fully_adv_cluster_selective_unclustering(k, 0, points, nb_points, cluster_size))
+        for _ in range(1, tmp):
+            levels.append(Fully_adv_cluster_selective_unclustering(k, d_min, points, nb_points, cluster_size))
+            d_min = (1 + eps) * d_min
+
     return nb_instances, helper_array
 
 def fully_adv_delete_level_array(levels, helper_array):
@@ -366,80 +454,169 @@ def fully_adv_get_index_smallest(levels, nb_instances):
 
     return nb_instances
 
-def fully_adv_k_center_run(levels, nn_levels, nb_instances, queries, helper_array, nn_helper_array):
-    q = query()
+def fully_adv_k_center_run(levels, cache_levels, nb_instances, queries, helper_array, cache_helper_array):
+    # ENVIRONMENT NUMBER 
+    ENV_NUM=15
+    PRINT_ALL = False
     
-    joint_normalized_MI_vals = []
-    nn_joint_normalized_MI_vals = []
-    ARI_vals = []
-    nn_ARI_vals = []
+    q = query()
+    q_num = 0
 
-    set_same, set_diff = set(), set()
-    nn_set_same, nn_set_diff = set(), set()
-    cluster_before_query = copy.deepcopy(levels[24].clusters.sets)
-    nn_cluster_before_query = copy.deepcopy(nn_levels[24].clusters.sets)
+    joint_normalized_MI_vals = []
+    cache_joint_normalized_MI_vals = []
+    ARI_vals = []
+    cache_ARI_vals = []
+    ari_cont = []
+    cache_ari_cont = []
+
+    center_difference_counts=[]
+    cache_center_difference_counts=[]
+    
+    prev_set_same, prev_set_diff = set(), set()
+    prev_cache_set_same, prev_cache_set_diff = set(), set()
+    cluster_before_query = copy.deepcopy(levels[ENV_NUM].clusters.sets)
+    cache_cluster_before_query = copy.deepcopy(cache_levels[ENV_NUM].clusters.sets)
     flag = False
     v_set= None
-    nn_v_set = None
+    cache_v_set = None
 
-    while queries.get_next_query_set(q, levels[24].clusters) :
+    while queries.get_next_query_set(q, levels[ENV_NUM].clusters) :
+        #Count Query number
+        q_num+=1
 
+        centers_before = set(levels[ENV_NUM].centers[:-1])
         # apply a query
-        exit_status, query_info = fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
-        nn_exit_status, nn_query_info = fully_adv_apply_one_query(nn_levels, nb_instances, q, nn_helper_array)
+        exit_status, query_info, has_reclutered_list = fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
         
+        centers_after = set(levels[ENV_NUM].centers[:-1]) 
+        
+        center_comparator = Center_comparator(centers_before, centers_after)
+        
+        center_diff_cnt = center_comparator.get_difference_count()
+        # print("==========================")
+        # print(center_comparator.get_set_difference())
+        # print(center_diff_cnt)
+        # print("==========================")
+
+        cache_before = set(cache_levels[ENV_NUM].centers[:-1])
+        cache_exit_status, cache_query_info, cache_has_reclutered_list = fully_adv_apply_one_query(cache_levels, nb_instances, q, cache_helper_array)
+        cache_after= set(cache_levels[ENV_NUM].centers[:-1])
+        cache_center_comparator = Center_comparator(cache_before, cache_after)
+        cache_diff_cnt = cache_center_comparator.get_difference_count()
+
+        # print("-----")
+        # for i in cache_levels[ENV_NUM].clusters.sets:
+        #     print(set(i.elements))
+        # print("-----")
+
+        # Flag is True when has_reclusterd_list[] exists and is true 
+        reclustering_flag  = has_reclutered_list[ENV_NUM] if has_reclutered_list else False
+        if reclustering_flag or PRINT_ALL:
+            center_difference_counts.append(center_diff_cnt)
+
+        cache_reclustering_flag = cache_has_reclutered_list[ENV_NUM] if cache_has_reclutered_list else False
+        if cache_reclustering_flag or PRINT_ALL:
+            cache_center_difference_counts.append(cache_diff_cnt)
+
         # (re)formulate cluster comparison envrionment 
-        cluster_after_query = levels[24].clusters.sets
-        nn_cluster_after_query = nn_levels[24].clusters.sets
+        cluster_after_query = levels[ENV_NUM].clusters.sets
+        cache_cluster_after_query = cache_levels[ENV_NUM].clusters.sets
+
         comparison = Cluster_comparator(cluster_before_query, cluster_after_query)
-        nn_comparison = Cluster_comparator(nn_cluster_before_query, nn_cluster_after_query)
+        cache_comparison = Cluster_comparator(cache_cluster_before_query, cache_cluster_after_query)
+        
         if flag:
             comparison.set_set_arr(v_set)
-            nn_comparison.set_set_arr(nn_v_set)
-        comparison.make_contigency_table()
-        nn_comparison.make_contigency_table()
+            cache_comparison.set_set_arr(cache_v_set)
+        
+        if reclustering_flag or PRINT_ALL:
+            comparison.make_contigency_table()
+            
+            # Normalized Mutual Information
+            mutual_info = comparison.mutual_information()
+            joint_entropy = comparison.joint_entropy()
+
+            nmi_output = 0 if (mutual_info == 0 or joint_entropy ==0) else mutual_info / joint_entropy
+            # if nmi_output < 1.0:
+            joint_normalized_MI_vals.append(nmi_output)
+            
+            # ARI1
+            comparison.initialize_pairs_measure(prev_set_same, prev_set_diff)
+            ari = comparison.adjusted_rand_index()
+            # if ari < 1.0:
+            ARI_vals.append(ari)
+            prev_set_same, prev_set_diff = comparison.get_pairs_lists()
+
+            #ARI2
+            ari_contingency_based = comparison.ari_contingency_table()
+            # if ari_contingency_based <1.0:
+            ari_cont.append(ari_contingency_based)
+
+        if cache_reclustering_flag or PRINT_ALL:
+            cache_comparison.make_contigency_table()
+
+            # Normalized Mutual Information
+            cache_mutual_info = cache_comparison.mutual_information()
+            cache_joint_entropy = cache_comparison.joint_entropy()
+
+            cache_nmi_output = 0 if (cache_mutual_info == 0 or cache_joint_entropy ==0) else cache_mutual_info / cache_joint_entropy
+            cache_joint_normalized_MI_vals.append(cache_nmi_output)
+            
+            # ARI
+            cache_comparison.initialize_pairs_measure(prev_cache_set_same, prev_cache_set_diff)
+            ari = cache_comparison.adjusted_rand_index()
+            cache_ARI_vals.append(ari)
+            prev_cache_set_same, prev_cache_set_diff = cache_comparison.get_pairs_lists()
+
+            # ari2
+            cache_ari_contingency = cache_comparison.ari_contingency_table()
+            # if cache_ari_contingency <1.0:
+            cache_ari_cont.append(cache_ari_contingency)
 
         v_set = comparison.get_set_arr()
-        nn_v_set = nn_comparison.get_set_arr()
+        cache_v_set = cache_comparison.get_set_arr()
         flag= True
 
-        # Normalized Mutual Information
-        mutual_info = comparison.mutual_information()
-        nn_mutual_info = nn_comparison.mutual_information()
-
-        joint_entropy = comparison.joint_entropy()
-        nn_joint_entropy = nn_comparison.joint_entropy()
-
-        nmi_output = 0 if (mutual_info == 0 or joint_entropy ==0) else mutual_info / joint_entropy
-        nn_nmi_output = 0 if (nn_mutual_info == 0 or nn_joint_entropy ==0) else nn_mutual_info / nn_joint_entropy
-
-        joint_normalized_MI_vals.append(nmi_output)
-        nn_joint_normalized_MI_vals.append(nn_nmi_output)
-
-        # ARI
-        comparison.initialize_pairs_measure(set_same, set_diff)
-        ARI_vals.append(comparison.adjusted_rand_index())
-        set_same, set_diff = comparison.get_pairs_lists()
-
-        nn_comparison.initialize_pairs_measure(nn_set_same, nn_set_diff)
-        nn_ARI_vals.append(nn_comparison.adjusted_rand_index())
-        nn_set_same, nn_set_diff = nn_comparison.get_pairs_lists()
+    # print(q_num, " queries executed.")
 
     # visualize similarity metrics
-    viz.plot_clustering_similarity_graph(joint_normalized_MI_vals, "Joint Normalized Mutual Information")
-    viz.plot_clustering_similarity_graph(nn_joint_normalized_MI_vals, "Joint NMI - Nearest Neighbor")
+    # Consistency
+    viz.plot_clustering_similarity_graph(center_difference_counts, "Center Change Counter - FDKCC")
+    print("average of center changes : {} ".format(sum(center_difference_counts)/len(center_difference_counts)))
+
+    viz.plot_clustering_similarity_graph(cache_center_difference_counts, "Center Change Counter - selective")
+    print("average of center changes for Selective : {} ".format(sum(cache_center_difference_counts)/len(cache_center_difference_counts)))
+
+    data = [("Consistency - FDKCC", center_difference_counts),
+            ("Consistency - Selective", cache_center_difference_counts)]
+    viz.plot_multiple_clustering_similarity_graph(data)
+
+    # NMI
+    viz.plot_clustering_similarity_graph(joint_normalized_MI_vals, "Joint Normalized Mutual Information - FDKCC")
+    viz.plot_clustering_similarity_graph(cache_joint_normalized_MI_vals, "Joint NMI - selective")
 
     data = [("Joint Normalized Mutual Information", joint_normalized_MI_vals), 
-            ("Joint NMI - Nearest Neighbor", nn_joint_normalized_MI_vals)]
+            ("Joint NMI - Selective", cache_joint_normalized_MI_vals)]
     viz.plot_multiple_clustering_similarity_graph(data)
     print("average of NMI: ", sum(joint_normalized_MI_vals) / len(joint_normalized_MI_vals))
-    print("average of NN NMI: ", sum(nn_joint_normalized_MI_vals) / len(nn_joint_normalized_MI_vals))
+    print("average of Selective NMI: ", sum(cache_joint_normalized_MI_vals) / len(cache_joint_normalized_MI_vals))
 
+    # ARI
     viz.plot_clustering_similarity_graph(ARI_vals, "Clustering Similarity by ARI")
     data = [("Clustering Similarity by ARI", ARI_vals),
-            ("ARI - Nearest Neighbor", nn_ARI_vals)]
+            ("ARI - Selective", cache_ARI_vals)]
+
     viz.plot_multiple_clustering_similarity_graph(data)
     print("average of ARI: ", sum(ARI_vals) / len(ARI_vals))
-    print("average of NN ARI: ", sum(nn_ARI_vals) / len(nn_ARI_vals))
+    print("average of Selective ARI: ", sum(cache_ARI_vals) / len(cache_ARI_vals))
+
+    viz.plot_clustering_similarity_graph(ari_cont, "clustering similarity by contingency based ari")
+    data = [
+        ("Clustering similarity by contingency based ari", ari_cont),
+        ("ARI_contingency based - Selective", cache_ari_cont)
+    ]
+    viz.plot_multiple_clustering_similarity_graph(data)
+    print("average of contingency_ARI: ", sum(ari_cont) / len(ari_cont))
+    print("average of contingency_Selective ARI: ", sum(cache_ari_cont) / len(cache_ari_cont))
 
         

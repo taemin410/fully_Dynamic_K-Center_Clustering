@@ -44,9 +44,9 @@ def fully_adv_k_center(prog_args):
     size = int()
     array=None
     helper_array = None
-    nn_helper_array = None
+    cache_helper_array = None
     clusters_array = []
-    nn_clusters_array = []
+    cache_clusters_array = []
     
     print("importing geo points...")
     size, array = fully_adv_import_points(prog_args["points_path"], prog_args['window_length'])
@@ -65,16 +65,16 @@ def fully_adv_k_center(prog_args):
                                 	prog_args["d_max"],nb_instances, array,
                                     size, prog_args["cluster_size"], helper_array)
 
-    print("building nearest neighbor cluster array...")
-    nb_instances, nn_helper_array = fully_adv_initialise_level_array(nn_clusters_array, prog_args["k"],
+    print("building new algorithm based cluster array...")
+    nb_instances, cache_helper_array = fully_adv_initialise_level_array(cache_clusters_array, prog_args["k"],
                                     prog_args["epsilon"], prog_args["d_min"],
                                 	prog_args["d_max"],nb_instances, array,
-                                    size, prog_args["cluster_size"], nn_helper_array, cluster_type="cache")
+                                    size, prog_args["cluster_size"], cache_helper_array, cluster_type="selective")
 
     print("fully adv environment successfully intialized!")
 
     print("running fully adv k center...")
-    fully_adv_k_center_run(clusters_array, nn_clusters_array, nb_instances, queries, helper_array, nn_helper_array)
+    fully_adv_k_center_run(clusters_array, cache_clusters_array, nb_instances, queries, helper_array, cache_helper_array)
 
 
 def arg_parse(prog_args):
@@ -126,12 +126,20 @@ def main():
     count = 0 
     File_object = open("dataset/smaller_queries.txt", "w")
 
+    query = []
     with open('dataset/readable.txt','r') as f:
         for line in f:
             if count > 10000:
                 break
             File_object.write(line)
+            # query.append(line)
             count += 1
+
+        # random.shuffle(query)
+        # for i in query:
+        #     File_object.write(i)
+
+    # print("length of query: ", len(query))
 
     prog_args["queries_path"] = "dataset/smaller_queries.txt"
 
@@ -145,12 +153,12 @@ def main():
     #   Run Argument parser
     #
 
+    File_object.close()
+    f.close()
     arg_parse(prog_args)
 
     print("Program terminates")
 
-    File_object.close()
-    f.close()
     
 #run main()
 main()

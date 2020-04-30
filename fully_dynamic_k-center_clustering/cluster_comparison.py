@@ -50,7 +50,7 @@ class Cluster_comparator():
     def extract_set_array_from_clusters(self, clusters) -> list:
         cluster_array = []
 
-        for i in range(len(clusters)):
+        for i in range(len(clusters)-1):
             array_to_set = set(clusters[i].elements)
             array_to_set.discard(None)
             cluster_array.append(array_to_set)
@@ -70,7 +70,6 @@ class Cluster_comparator():
     '''
     def initialize_contigency_table(self) -> list:
         contigency_table = [[0 for i in range(self.V_length)] for j in range(self.U_length)]
-        # total = 0
 
         # update contigency table
         for i in range(self.U_length):
@@ -79,14 +78,12 @@ class Cluster_comparator():
                 for set_element in self.U_set_arr[i]:
                     if set_element in self.V_set_arr[j]:
                         contigency_table[i][j] += 1
-                        # total += 1
                         row_sum += 1
             
             contigency_table[i].append(row_sum)
 
         # calculate sum of each column and add it as the last row of the contigency table
         col_sum_arr = [sum([row[i] for row in contigency_table]) for i in range(len(contigency_table[0]))]
-        # col_sum_arr.append(total)
 
         contigency_table.append(col_sum_arr)
         # print('contingency table: ')
@@ -129,6 +126,80 @@ class Cluster_comparator():
             return 0 
 
         return ari
+
+    def ari_contingency_table(self) -> float:
+
+        a = self.calculate_ari_a()
+        b = self.calculate_ari_b()
+        c = self.calculate_ari_c()
+        d = self.calculate_ari_d()
+
+        N = a+b+c+d  # total sum of number of common elements
+
+        divisor = ((a + b) * (b + d) + (d + c) * (c + a))
+        dividend = 2 * (d * a - b * c)
+        
+        if divisor != 0:
+            ari =  dividend / divisor
+        else:
+            return 0 
+
+        return ari
+
+        # return ( N*(a+d) - ((a+b)*(a+c) + (c+d)*(b+d)) ) / ( N**2 - ((a+b)*(a+c) + (c+d) * (b+d)) ) if ( N**2 - ((a+b)*(a+c) + (c+d) * (b+d)) ) != 0 else 0
+
+    def calculate_ari_a(self) -> float:
+        
+        N = self.contigency_table[self.U_length][self.V_length]
+        sqr_sum = 0
+
+        for i in range(self.U_length):
+            for j in range(self.V_length):
+                sqr_sum += self.contigency_table[i][j] ** 2
+
+        return (sqr_sum - N) / 2
+
+    def calculate_ari_b(self) -> float:
+        sq_sum_a = 0
+        sq_sum_n = 0
+
+        for i in range(self.U_length):
+            sq_sum_a += self.contigency_table[i][self.V_length] ** 2
+            for j in range(self.V_length):
+                sq_sum_n += self.contigency_table[i][j] ** 2
+
+        return (sq_sum_a - sq_sum_n) / 2
+
+    def calculate_ari_c(self) -> float:
+        sq_sum_b = 0
+        sq_sum_n = 0
+
+        for j in range(self.V_length):
+            sq_sum_b += self.contigency_table[self.U_length][j] ** 2
+            for i in range(self.U_length):
+                sq_sum_n += self.contigency_table[i][j] ** 2
+
+        return (sq_sum_b - sq_sum_n) / 2
+
+    def calculate_ari_d(self) -> float:
+        sq_sum_n = 0
+        sq_sum_a = 0
+        sq_sum_b = 0
+        N = self.contigency_table[self.U_length][self.V_length]
+
+        for i in range(self.U_length):
+            for j in range(self.V_length):
+                sq_sum_n += self.contigency_table[i][j]**2
+
+        for i in range(self.U_length):
+            sq_sum_a += self.contigency_table[i][self.V_length]**2
+
+        for j in range(self.V_length):
+            sq_sum_b += self.contigency_table[self.U_length][j]**2
+
+        return (sq_sum_n + N**2 - sq_sum_a - sq_sum_b) / 2
+
+
     
     '''
         Calculate the number of pairs that are in the same cluster in both U and V.
@@ -228,7 +299,7 @@ class Cluster_comparator():
         contigency_N = self.contigency_table[self.U_length][self.V_length]  # total sum of number of common elements
 
         if cluster == "U":
-            for i in range(self.U_length - 1):
+            for i in range(self.U_length):
                 a_i = float(self.contigency_table[i][self.V_length])
                 if a_i != 0:
                     entropy += (a_i / contigency_N) * log(a_i / contigency_N)

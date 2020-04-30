@@ -1,3 +1,5 @@
+from data_fully_adv import fully_adv_distance
+
 NOT_IN_SET = -1
         
 class Element_pointer:
@@ -117,6 +119,47 @@ class Set_collection:
 
         return size, cache
 
+    def selective_remove_all_elements_after_set(self, set_index, centers, radius, data_array, array, size) -> int:
+        size = 0
+        # num_unclustered = 0
+        deleted_index = set()
+        deleted_center = centers[set_index]
+        
+        # uncluster data points only in overlapping clusters 
+        while set_index < self.nb_sets - 1:
+            if centers[set_index] !=None:
+                distance = fully_adv_distance(data_array[deleted_center], data_array[centers[set_index]])
+                if  distance < 2 * radius or distance == 0:    
+                    for iter_set in range(self.sets[set_index].card):
+                        current_elm = self.sets[set_index].elements[iter_set]
+                        array.append(current_elm)
+                        
+                        self.sets[set_index].elm_ptr[current_elm].pointer = NOT_IN_SET
+                        self.sets[set_index].elm_ptr[current_elm].set_index = NOT_IN_SET
+                        
+                        size += 1
+
+                    deleted_index.add(set_index)
+                    self.sets[set_index].elements = [None] * self.max_size
+                    self.sets[set_index].card = 0
+
+            set_index += 1
+
+        # unclustered data points
+        for iter_set in range(self.sets[set_index].card):
+            current_elm = self.sets[set_index].elements[iter_set]
+            array.append(current_elm)
+            
+            self.sets[set_index].elm_ptr[current_elm].pointer = NOT_IN_SET
+            self.sets[set_index].elm_ptr[current_elm].set_index = NOT_IN_SET
+            
+            size += 1
+
+        self.sets[set_index].elements = [None] * self.max_size
+        self.sets[set_index].card = 0
+        
+        return size, deleted_index
+
     def has_element_set_collection(self, element) -> int:
         return NOT_IN_SET != self.sets[0].elm_ptr[element].set_index
 
@@ -124,7 +167,6 @@ class Set_collection:
 '''Should Not be included in Set_ or Set_collection'''
 def initialise_set_n_common(n, max_size, range_) -> list:
     set_coll = []
-    # set_coll.append(Set_(max_size, range_, 0))
     elem_ptr_list = [Element_pointer(-1, -1) for _ in range(range_)]
 
     for i in range(0, n):
