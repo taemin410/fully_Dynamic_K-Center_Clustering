@@ -1,4 +1,3 @@
-import point
 import random
 import copy
 import heapq
@@ -13,7 +12,6 @@ from center_comparison import Center_comparator
 import visualization as viz
 import static_variables as sv
 # from numba import jit, cuda 
-
 
 class Fully_adv_cluster:
     def __init__(self, k, radius, array, nb_points, cluster_size):

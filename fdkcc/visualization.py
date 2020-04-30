@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 
+
+    
 '''
     Plot the similarity of the clustering graph.
 
@@ -21,7 +23,7 @@ def plot_clustering_similarity_graph(vals, y_label):
     plt.title('Similarity b/w two clusterings') 
     
     plt.legend() 
-     
+    
     plt.show()
 
 
@@ -95,4 +97,3 @@ def plot_clustering(levels, index):
 
 
 
-    

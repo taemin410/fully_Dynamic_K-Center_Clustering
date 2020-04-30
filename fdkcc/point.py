@@ -15,7 +15,7 @@ class Timestamped_point:
 
 
 def euclidean_distance(a, b) -> float:
-    return sqrt((a.latitude - b.latitude) ** 2 + ( min( abs(a.latitude - b.latitude), 360 - abs(a.longitude - b.longitude)) ) ** 2)
+    return sqrt((a.latitude - b.latitude) ** 2 + ( min( abs(a.longitude - b.longitude), 360 - abs(a.longitude - b.longitude)) ) ** 2)
 
 def great_circle_distance(a, b) -> float:
     return acos( sin(a.latitude) * sin(b.latitude) + cos(a.latitude) * cos(b.latitude) * cos(a.longitude - b.longitude) )
