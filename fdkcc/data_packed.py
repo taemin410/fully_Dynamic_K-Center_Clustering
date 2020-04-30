@@ -1,5 +1,4 @@
 import point
-# import utils
 
 INIT_ARRAY_SIZE = 100000
 

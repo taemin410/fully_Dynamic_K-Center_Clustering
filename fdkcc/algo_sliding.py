@@ -1,7 +1,7 @@
 # import point
 import math
-import utils
-from utils import log_
+import util
+from util import log_
 from data_sliding import sliding_import_points, sliding_distance
 
 

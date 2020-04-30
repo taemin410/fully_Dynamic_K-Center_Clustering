@@ -5,7 +5,7 @@ import numpy as np
 from set_ import Set_, Set_collection
 from query import query, query_provider
 from data_fully_adv import fully_adv_distance
-from utils import log_, shuffle_array
+from util import log_, shuffle_array
 from math import ceil, log
 from cluster_comparison import Cluster_comparator
 from center_comparison import Center_comparator

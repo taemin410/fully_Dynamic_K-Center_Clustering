@@ -1,8 +1,13 @@
 import pytest
 import os 
+import sys
 
-from fdkcc.algo_fully_adv import * 
-from fdkcc.data_fully_adv import *
+sys.path.append("../fdkcc/")
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+sys.path.insert(0, "../fdkcc/*")
+
+import fdkcc.algo_fully_adv
+from data_fully_adv import *
 
 @pytest.fixture
 def create_and_read_file(tmpdir):

@@ -1,5 +1,4 @@
 import point
-# import utils
 
 LIMIT_CHARACTER_LINE = 10000000
 

@@ -1,6 +1,6 @@
 from set_ import Set_collection
 from math import ceil, log
-from utils import log_
+from util import log_
 
 class Trajectory_level:
     def __init__(self, k, radius, array, nb_points):
