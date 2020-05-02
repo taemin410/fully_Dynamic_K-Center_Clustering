@@ -13,7 +13,6 @@ def shuffle_array(array, size) -> None:
 class Log:
 
     def __init__(self, path, long_log=0):
-        # self.log_file=path
         self.long_log=long_log
         self.enable_log(path)
 

@@ -28,7 +28,7 @@ def test_fully_adv_import_points(tmpdir, create_and_read_file):
     count = 10
     WINDOW_LENGTH = 15
     counter, point_array = fully_adv_import_points(tmpdir+"/subdir/inputdata.txt", WINDOW_LENGTH)
-    print(point_array)
+
     assert count == counter
 
     geopointsarr = [(0.37526667 ,52.26389667),
