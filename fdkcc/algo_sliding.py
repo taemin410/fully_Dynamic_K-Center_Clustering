@@ -1,4 +1,3 @@
-# import point
 import math
 import util
 from util import log_
@@ -6,7 +5,6 @@ from data_sliding import sliding_import_points, sliding_distance
 
 
 class Sliding_level:
-
     def __init__(self,level=None, k=0,radius=0,array=None,nb_points=0):
         self.k=k #Maximum number of clusters allowed
         self.radius=radius #Cluster radius
@@ -128,7 +126,6 @@ class Sliding_level:
 
         index= self.first_attr
         for i in range(0, self.attr_nb):
-        # Oh neul eun yeo gi GGA ji
             self.centers[self.cluster_nb] = self.attr[index]
             self.cluster_nb += 1
             self.sp_points[index] = self.attr[index]
@@ -148,7 +145,6 @@ class Sliding_level:
         flag = 0
         d_min, tmp = float(), float()
 
-        # array = Timestamped_point()
         array = self.array
         self.last_point = element + 1
 
@@ -177,7 +173,6 @@ class Sliding_level:
             else:
                 self.elements[element] = self.attr[i_min]
                 self.repr[i_min] = element
-
 
             #update the while loop condition
             self.first_point +=1
@@ -234,19 +229,13 @@ def sliding_initialise_levels_array(levels, k, eps, d_min, d_max, nb_instances, 
         d_min = (1+eps) * d_min
         levels.append(level)
     
-    #levels array is updated by "Pass by reference"
     return nb_instances 
-
-    # need to put level objects in the levels array
 
 
 def sliding_delete_levels_array(levels, nb_instances) -> None:
     for i in range(0, nb_instances):
         levels[i].sliding_delete_level()
 
-    #maybe deletion and freeing of levels array can be simpler
-
-    
 
 def sliding_get_index_smallest(levels, nb_instances) -> int:
     upper_limit = levels[0].k +1
@@ -258,16 +247,12 @@ def sliding_get_index_smallest(levels, nb_instances) -> int:
     return nb_instances
 
 def sliding_write_log(levels, nb_instances, element) ->int:
-    
-    # print(log_)
     log = log_.get_log_file()
     if log_.has_log():
         result = sliding_get_index_smallest(levels, nb_instances)
         if result == nb_instances:
             log.write("Error no feasible radius possible found after inserting "+str(element))
             return 1
-
-
 
         if log_.has_long_log():
             logstr = "\na " + str(levels[result].last_point - 1) + " " + str(levels[result].last_point - levels[result].first_point) + " c" + str(result) + \
@@ -281,7 +266,6 @@ def sliding_write_log(levels, nb_instances, element) ->int:
 
     return 0
 
-#Have not checked sliding_compute_centers
 def sliding_k_center_run(levels, nb_instances) -> None:
     for i in range(0, levels[0].nb_points):
         for j in range(0, nb_instances):

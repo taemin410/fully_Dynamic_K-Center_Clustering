@@ -87,6 +87,10 @@ def arg_parse(prog_args):
     args = parser.parse_args()
 
     if args.sliding:
+        window_length = input("if sliding window model Window length: ")
+        if window_length:
+            prog_args["window_length"] = window_length
+
         print(parser.parse_args())
         sliding_k_center(prog_args)
     if args.fullyadv:
@@ -110,15 +114,13 @@ def main():
         "points_path" : "dataset/xaa.txt",
         "queries_path" : "dataset/readable.txt",
         "cluster_size" : 10000,
-        "window_length" : 10
+        "window_length" : 1000
     }
 
     #
     #   READ USER INPUT  (DEFAULT path is set to dataset/timestamped_gps_coordinate.txt)
     #
 
-    readpath = input("Path to the dataset (relative or full path) : ")
-    window_length = input("if sliding window model Window length: ")
 
     #
     #   Split large query data points into smaller parts
@@ -139,26 +141,19 @@ def main():
         # for i in query:
         #     File_object.write(i)
 
-    # print("length of query: ", len(query))
+    File_object.close()
+    f.close()
 
     prog_args["queries_path"] = "dataset/smaller_queries.txt"
-
+    readpath = input("Path to the dataset (relative or full path) : ")
     if readpath:
         prog_args["points_path"]= readpath
-    if window_length:
-        prog_args["window_length"] = window_length
-
 
     #
     #   Run Argument parser
     #
-
-    File_object.close()
-    f.close()
     arg_parse(prog_args)
-
     print("Program terminates")
 
-    
 #run main()
 main()
