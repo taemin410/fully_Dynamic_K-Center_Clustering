@@ -80,9 +80,7 @@ def fully_adv_k_center(prog_args):
 def arg_parse(prog_args):
     parser = argparse.ArgumentParser(description='Model selection')
     parser.add_argument('--sliding','-s', help="Run sliding window model", action='store_true' )
-    parser.add_argument('--fullyadv','-f', help="Run sliding window model", action='store_true' )
-    parser.add_argument('--packed','-p', help="Run sliding window model", action='store_true' )
-    parser.add_argument('--trajectories','-t', help="Run sliding window model", action='store_true' )
+    parser.add_argument('--fullyadv','-f', help="Run Fully Adversarial Model", action='store_true' )
 
     args = parser.parse_args()
 
@@ -96,10 +94,6 @@ def arg_parse(prog_args):
     if args.fullyadv:
         print(parser.parse_args())
         fully_adv_k_center(prog_args)
-    if args.packed:
-        print()
-    if args.trajectories:
-        print()
 
 def main():
 
@@ -131,7 +125,7 @@ def main():
     query = []
     with open('dataset/readable.txt','r') as f:
         for line in f:
-            if count > 10000:
+            if count > 1000:
                 break
             File_object.write(line)
             # query.append(line)
