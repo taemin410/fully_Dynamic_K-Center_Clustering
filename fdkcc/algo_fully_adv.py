@@ -27,7 +27,7 @@ class Fully_adv_cluster:
     def fully_adv_delete_level(self) -> None:
         self.clusters = None
         self.centers = None
-        self.true_rad = None
+        self.true_rad = 0
         self.centers = None
         self.nb_points = 0
         self.array = None
