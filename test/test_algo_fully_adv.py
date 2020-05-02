@@ -32,4 +32,3 @@ def test_Fully_adv_cluster_class(tmpdir, create_and_read_file):
     counter, point_array = fully_adv_import_points(tmpdir+"/subdir/inputdata.txt", WINDOW_LENGTH)
     fullyadvcluster = Fully_adv_cluster(20, 0, point_array, 10, 5)
     assert fullyadvcluster.array == point_array
-
