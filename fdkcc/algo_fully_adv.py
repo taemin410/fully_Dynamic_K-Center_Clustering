@@ -27,7 +27,7 @@ class Fully_adv_cluster:
     def fully_adv_delete_level(self) -> None:
         self.clusters = None
         self.centers = None
-        self.true_rad = None
+        self.true_rad = 0
         self.centers = None
         self.nb_points = 0
         self.array = None
@@ -316,20 +316,23 @@ class Fully_adv_cluster_selective_unclustering(Fully_adv_cluster):
         #if in case of simple deletion
         return False
 
+'''
+
+fully_adv_write_log()
+
+    returns:
+            - optimal radius environment number with fully_adv_get_index_smallest()
+            - returns -1 when no feasible radius found 
+
+'''
 def fully_adv_write_log(levels, nb_instances, cluster_index, nb_points, q) -> int:
     key = 'a' if q.type == "ADD" else 'd'
     if log_.has_log():
         result = fully_adv_get_index_smallest(levels, nb_instances)
 
-        # if result == 0:
-        #     print("-----")
-        #     for i in levels[result].clusters.sets:
-        #         print(set(i.elements))
-        #     print("-----")
-
         if result == nb_instances:
             print('Error, no feasible radius possible found after inserting', q.data_index)
-            return 4 #only_bad_levels_error
+            return -1 #only_bad_levels_error
 
         content = 'key: ' + str(key) + ' ' + 'data index: ' + \
             str(q.data_index) + ' ' + 'nb_points: ' + str(nb_points) + ' '\
@@ -343,7 +346,8 @@ def fully_adv_write_log(levels, nb_instances, cluster_index, nb_points, q) -> in
         else:
             f = log_.get_log_file()
             f.write(content)
-    return 0
+    
+    return result
 
 '''
     Apply query to existing clusters.
@@ -378,14 +382,13 @@ def fully_adv_apply_one_query(levels, nb_instances, q, helper_array) -> tuple:
         
         return fully_adv_write_log(levels, nb_instances, cluster_index, sv.nb_points, q), q , reclustered_levels_list
 
-
     return fully_adv_write_log(levels, nb_instances, cluster_index, sv.nb_points, q), q , []
 
 def fully_adv_center_run(levels, nb_instances, queries, helper_array) -> None:
     q = query() #query type pointer
     while queries.get_next_query_set(q, levels[0].clusters):
-        fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
-
+        result = fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
+        #print("optimal radius env: ", result)
 
 '''
     Updates the array of clustering environment
@@ -484,28 +487,17 @@ def fully_adv_k_center_run(levels, cache_levels, nb_instances, queries, helper_a
 
         centers_before = set(levels[ENV_NUM].centers[:-1])
         # apply a query
-        exit_status, query_info, has_reclutered_list = fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
+        result_env, query_info, has_reclutered_list = fully_adv_apply_one_query(levels, nb_instances, q, helper_array)
         
         centers_after = set(levels[ENV_NUM].centers[:-1]) 
-        
         center_comparator = Center_comparator(centers_before, centers_after)
-        
         center_diff_cnt = center_comparator.get_difference_count()
-        # print("==========================")
-        # print(center_comparator.get_set_difference())
-        # print(center_diff_cnt)
-        # print("==========================")
 
         cache_before = set(cache_levels[ENV_NUM].centers[:-1])
-        cache_exit_status, cache_query_info, cache_has_reclutered_list = fully_adv_apply_one_query(cache_levels, nb_instances, q, cache_helper_array)
+        cache_result_env, cache_query_info, cache_has_reclutered_list = fully_adv_apply_one_query(cache_levels, nb_instances, q, cache_helper_array)
         cache_after= set(cache_levels[ENV_NUM].centers[:-1])
         cache_center_comparator = Center_comparator(cache_before, cache_after)
         cache_diff_cnt = cache_center_comparator.get_difference_count()
-
-        # print("-----")
-        # for i in cache_levels[ENV_NUM].clusters.sets:
-        #     print(set(i.elements))
-        # print("-----")
 
         # Flag is True when has_reclusterd_list[] exists and is true 
         reclustering_flag  = has_reclutered_list[ENV_NUM] if has_reclutered_list else False
@@ -574,8 +566,6 @@ def fully_adv_k_center_run(levels, cache_levels, nb_instances, queries, helper_a
         v_set = comparison.get_set_arr()
         cache_v_set = cache_comparison.get_set_arr()
         flag= True
-
-    # print(q_num, " queries executed.")
 
     # visualize similarity metrics
     # Consistency
