@@ -9,7 +9,7 @@ def create_and_read_file(tmpdir):
     d = tmpdir.mkdir("subdir")
 
     fo = d.join("inputdata.txt")
-    # fo = open(filename)
+
     fo.write(
 """1504866207	0.37526667 52.26389667
 1504866208	121.0352397 14.65166573

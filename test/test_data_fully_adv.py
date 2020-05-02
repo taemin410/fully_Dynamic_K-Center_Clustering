@@ -2,12 +2,7 @@ import pytest
 import os 
 import sys
 
-sys.path.append("../fdkcc/")
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-sys.path.insert(0, "../fdkcc/*")
-
-import fdkcc.algo_fully_adv
-from data_fully_adv import *
+from fdkcc.data_fully_adv import fully_adv_import_points
 
 @pytest.fixture
 def create_and_read_file(tmpdir):
@@ -46,6 +41,7 @@ def test_fully_adv_import_points(tmpdir, create_and_read_file):
                     (139.77624317 ,35.71330529),
                     (4.08333 ,48.3),
                     (103.854934 ,1.300463)]
+
     for i in range(len(point_array)):
         assert point_array[i].latitude == geopointsarr[i][0]
         assert point_array[i].longitude == geopointsarr[i][1]

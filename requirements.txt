@@ -2,4 +2,5 @@ numpy
 seaborn
 pandas
 matplotlib
+pytest
 
