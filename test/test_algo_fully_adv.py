@@ -25,9 +25,6 @@ def create_and_read_file(tmpdir):
     return fo
 
 def test_Fully_adv_cluster_class(tmpdir, create_and_read_file):
-    print(tmpdir)
-    print(create_and_read_file)
-    
     WINDOW_LENGTH = 15
     counter, point_array = fully_adv_import_points(tmpdir+"/subdir/inputdata.txt", WINDOW_LENGTH)
     fullyadvcluster = Fully_adv_cluster(20, 0, point_array, 10, 5)
