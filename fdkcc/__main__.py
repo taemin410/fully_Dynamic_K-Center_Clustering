@@ -7,7 +7,7 @@ from query import *
 
 import sys
 import argparse
-
+import tensorflow as tf
 """
 __main__.py
 
@@ -76,6 +76,7 @@ def fully_adv_k_center(prog_args):
     print("running fully adv k center...")
     fully_adv_k_center_run(clusters_array, cache_clusters_array, nb_instances, queries, helper_array, cache_helper_array)
 
+    # fully_adv_center_run(clusters_array, nb_instances, queries, helper_array)
 
 def arg_parse(prog_args):
     parser = argparse.ArgumentParser(description='Model selection')
@@ -95,21 +96,11 @@ def arg_parse(prog_args):
         print(parser.parse_args())
         fully_adv_k_center(prog_args)
 
-def main():
+def main(prog_args):
 
     #
     #   INITIALIZE PROG_ARGS
     #
-    prog_args={
-        "k": 20,
-        "epsilon": 0.1,
-        "d_min" : 1,
-        "d_max" : 80,
-        "points_path" : "dataset/xaa.txt",
-        "queries_path" : "dataset/readable.txt",
-        "cluster_size" : 10000,
-        "window_length" : 1000
-    }
 
     #
     #   READ USER INPUT  (DEFAULT path is set to dataset/timestamped_gps_coordinate.txt)
@@ -125,7 +116,7 @@ def main():
     query = []
     with open('dataset/readable.txt','r') as f:
         for line in f:
-            if count > 1000:
+            if count > 10000:
                 break
             File_object.write(line)
             # query.append(line)
@@ -139,9 +130,9 @@ def main():
     f.close()
 
     prog_args["queries_path"] = "dataset/smaller_queries.txt"
-    readpath = input("Path to the dataset (relative or full path) : ")
-    if readpath:
-        prog_args["points_path"]= readpath
+    # readpath = input("Path to the dataset (relative or full path) : ")
+    # if readpath:
+    #     prog_args["points_path"]= readpath
 
     #
     #   Run Argument parser
@@ -149,5 +140,34 @@ def main():
     arg_parse(prog_args)
     print("Program terminates")
 
+
+#
+#RUN SCRIPT HERE 
+#
+prog_args={
+    "k": 20,
+    "epsilon": 0.1,
+    "d_min" : 1,
+    "d_max" : 80,
+    "points_path" : "dataset/xaa.txt",
+    "queries_path" : "dataset/readable.txt",
+    "cluster_size" : 10000,
+    "window_length" : 1000
+}
+
+from timeit import default_timer as timer
 #run main()
-main()
+from torch.utils.tensorboard import SummaryWriter
+
+fws = SummaryWriter("./tmp/line", 'timecompute',filename_suffix='selective')
+
+# fw = tf.summary.create_file_writer("./tmp/")
+for k in range(10, 110, 10):
+    prog_args["k"] = k
+    start = timer()
+    main(prog_args)
+    end = timer()
+    time = end - start
+    fws.add_scalar("time", time, k)
+
+    
